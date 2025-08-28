@@ -1,25 +1,20 @@
 import streamlit as st
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 import cv2
-import time
 
-st.title("🎥 Camera Streaming với OpenCV")
+# Tiêu đề
+st.title("📷 Camera Streaming qua Web (WebRTC + OpenCV)")
 
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
-frame_placeholder = st.empty()
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        st.write("Không mở được camera")
-        break
+# Tạo class xử lý video
+class VideoTransformer(VideoTransformerBase):
+    def transform(self, frame):
+        img = frame.to_ndarray(format="bgr24")
 
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # 👉 Ví dụ: chuyển sang grayscale
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        return cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)  # Trả về ảnh màu để hiển thị
 
-    frame_placeholder.image(frame, channels="RGB")
 
-    # Giảm tải CPU (20 fps)
-    time.sleep(0.05)
-
-cap.release()
+# Kích hoạt camera từ trình duyệt
+webrtc_streamer(key="camera", video_transformer_factory=VideoTransformer)
