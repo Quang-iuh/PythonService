@@ -4,10 +4,11 @@ import time
 
 st.title("🎥 Camera Streaming với OpenCV")
 
-cap = cv2.VideoCapture('http://192.168.1.6:8080/video')
+cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
 frame_placeholder = st.empty()
-
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 while True:
     ret, frame = cap.read()
     if not ret:
