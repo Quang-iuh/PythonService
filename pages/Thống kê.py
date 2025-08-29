@@ -3,50 +3,31 @@ import pandas as pd
 
 st.title("📊 Trang Thống Kê")
 
-# Khởi tạo danh sách lịch sử trong session_state nếu chưa có
+# Khởi tạo qr_history nếu chưa có
 if 'qr_history' not in st.session_state:
     st.session_state.qr_history = []
 
-# ---
-# HIỂN THỊ DỮ LIỆU THỐNG KÊ
-# ---
 st.subheader("Thông tin thống kê tổng quát")
 total_scans = len(st.session_state.qr_history)
 
-# Tạo các bộ dữ liệu cho từng miền
-unique_north = set()
-unique_central = set()
-unique_south = set()
+# Tách dữ liệu theo miền
+unique_north = {item["data"] for item in st.session_state.qr_history if item["region"]=="Miền Bắc"}
+unique_central = {item["data"] for item in st.session_state.qr_history if item["region"]=="Miền Trung"}
+unique_south = {item["data"] for item in st.session_state.qr_history if item["region"]=="Miền Nam"}
 
-for item in st.session_state.qr_history:
-    if item['data'].startswith("MB-"):
-        unique_north.add(item['data'])
-    elif item['data'].startswith("MT-"):
-        unique_central.add(item['data'])
-    elif item['data'].startswith("MN-"):
-        unique_south.add(item['data'])
-
-# Tổng số mã duy nhất của cả 3 miền
+# Tổng số mã duy nhất
 unique_scans = len(unique_north | unique_central | unique_south)
 
-# Sử dụng 3 cột để hiển thị số liệu của từng miền
+# Hiển thị số liệu theo cột
 col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    st.metric("Tổng số đã quét", total_scans)
-with col2:
-    st.metric("Miền Trung", len(unique_central))
-with col3:
-    st.metric("Miền Bắc", len(unique_north))
-with col4:
-    st.metric("Miền Nam", len(unique_south))
-
-
+col1.metric("Tổng số đã quét", total_scans)
+col2.metric("Miền Trung", len(unique_central))
+col3.metric("Miền Bắc", len(unique_north))
+col4.metric("Miền Nam", len(unique_south))
 
 st.write("---")
-# ---
-# VẼ BIỂU ĐỒ
-# ---
+
+# Biểu đồ phân loại theo miền
 st.subheader("Biểu đồ Phân loại theo Miền")
 chart_data = {
     'Miền': ['Miền Bắc', 'Miền Trung', 'Miền Nam'],
@@ -57,13 +38,10 @@ st.bar_chart(df_chart, x='Miền', y='Số lượng')
 
 st.write("---")
 
-
-# ---
-# HIỂN THỊ LỊCH SỬ DƯỚI DẠNG BẢNG
-# ---
+# Lịch sử quét
 st.subheader("Lịch sử quét mã")
 if st.session_state.qr_history:
     df = pd.DataFrame(st.session_state.qr_history)
-    st.dataframe(df, use_container_width=True)
+    st.dataframe(df[['data','region','raw']], use_container_width=True)
 else:
     st.info("Chưa có dữ liệu nào được quét. Vui lòng trở về trang Camera để quét mã.")
