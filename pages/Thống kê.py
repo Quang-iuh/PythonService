@@ -9,7 +9,6 @@ if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.stop()  # Ngăn nội dung phía dưới hiển thị
 
 # Nội dung chính của trang
-st.title("📷 Camera quét QR")
 
 # Khởi tạo qr_history nếu chưa có
 if 'qr_history' not in st.session_state:

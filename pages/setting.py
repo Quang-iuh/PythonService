@@ -8,9 +8,6 @@ if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.warning("⚠️ Vui lòng đăng nhập trước khi truy cập trang này.")
     st.stop()  # Ngăn nội dung phía dưới hiển thị
 
-# Nội dung chính của trang
-st.title("📷 Camera quét QR")
-
 # Tạo biến trong session_state nếu chưa có
 if "grayscale" not in st.session_state:
     st.session_state.grayscale = False
