@@ -2,6 +2,14 @@ import streamlit as st
 
 st.title("⚙️ Trang Cài đặt")
 st.write("Đây là nơi bạn thiết lập cấu hình ứng dụng.")
+import streamlit as st
+
+if 'logged_in' not in st.session_state or not st.session_state.logged_in:
+    st.warning("⚠️ Vui lòng đăng nhập trước khi truy cập trang này.")
+    st.stop()  # Ngăn nội dung phía dưới hiển thị
+
+# Nội dung chính của trang
+st.title("📷 Camera quét QR")
 
 # Tạo biến trong session_state nếu chưa có
 if "grayscale" not in st.session_state:
@@ -46,3 +54,8 @@ st.session_state.speed_motor = st.slider(
     step=1.0,
     help="Điều chỉnh tốc độ động cơ với nút dặn."
 )
+st.sidebar.title(f"Chào {st.session_state.username}")
+if st.sidebar.button("🔒 Đăng xuất"):
+    st.session_state.logged_in = False
+    st.session_state.username = ""
+    st.experimental_rerun()

@@ -1,28 +1,25 @@
 import streamlit as st
 from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 import cv2
-from pyzbar.pyzbar import decode
 import pandas as pd
-from queue import Queue
-
-# --- Biến toàn cục cho hàng đợi QR ---
-qr_queue = Queue()
 
 # --- Cấu hình trang ---
 st.set_page_config(page_title="Quét Mã QR", layout="wide")
 
 st.title("📷 Trang Quét Mã QR")
 st.write("Sử dụng camera của bạn để quét và phân loại mã QR.")
-
+if 'logged_in' not in st.session_state or not st.session_state.logged_in:
+    st.warning("⚠️ Vui lòng đăng nhập trước khi truy cập trang này.")
+    st.stop()  # Ngăn nội dung phía dưới hiển thị
 # --- Khởi tạo session state ---
-if 'qr_history' not in st.session_state:
+if "qr_history" not in st.session_state:
     st.session_state.qr_history = []
-if 'last_qr' not in st.session_state:
+if "last_qr" not in st.session_state:
     st.session_state.last_qr = ""
 
 
 # --- Hàm phân loại mã QR ---
-def classify_qr(qr_data):
+def classify_qr(qr_data: str) -> str:
     if qr_data.startswith("MB-"):
         return "Miền Bắc"
     if qr_data.startswith("MT-"):
@@ -32,23 +29,38 @@ def classify_qr(qr_data):
     return "Miền khác"
 
 
-# --- Lớp xử lý video ---
+# --- Lớp xử lý video với QRCodeDetector ---
 class VideoTransformer(VideoTransformerBase):
+    def __init__(self):
+        self.detector = cv2.QRCodeDetector()
+
     def transform(self, frame):
         img = frame.to_ndarray(format="bgr24")
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        decoded_objs = decode(gray)
 
-        for obj in decoded_objs:
-            qr_data = obj.data.decode("utf-8")
+        # Phát hiện và giải mã QR
+        data, points, _ = self.detector.detectAndDecode(img)
 
-            # Đẩy dữ liệu vào hàng đợi toàn cục
-            qr_queue.put(qr_data)
+        if points is not None and data:
+            points = points[0].astype(int)
+            for j in range(len(points)):
+                pt1 = tuple(points[j])
+                pt2 = tuple(points[(j + 1) % len(points)])
+                cv2.line(img, pt1, pt2, (0, 255, 0), 2)
 
-            (x, y, w, h) = obj.rect
-            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.putText(img, qr_data, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX,
-                        0.9, (0, 255, 0), 2)
+            # Nếu là mã QR mới thì lưu
+            if data != st.session_state.last_qr:
+                qr_region = classify_qr(data)
+                qr_entry = {
+                    "data": data,
+                    "type": "QRCODE",
+                    "time": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "region": qr_region,
+                }
+                st.session_state.qr_history.append(qr_entry)
+                st.session_state.last_qr = data
+
+            cv2.putText(img, data, (points[0][0], points[0][1] - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
         return img
 
@@ -56,30 +68,20 @@ class VideoTransformer(VideoTransformerBase):
 # --- Khởi chạy camera ---
 webrtc_streamer(
     key="camera",
-    video_transformer_factory=VideoTransformer,
-    media_stream_constraints={"video": True, "audio": False}
+    video_processor_factory=VideoTransformer,   # thay vì video_transformer_factory
+    media_stream_constraints={"video": True, "audio": False},
 )
-
-# --- Xử lý dữ liệu từ hàng đợi ---
-while not qr_queue.empty():
-    qr_data = qr_queue.get()
-    if qr_data != st.session_state.last_qr:
-        qr_region = classify_qr(qr_data)
-        qr_entry = {
-            "data": qr_data,
-            "type": "QRCODE",
-            "time": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "region": qr_region
-        }
-        st.session_state.qr_history.append(qr_entry)
-        st.session_state.last_qr = qr_data
-        st.experimental_rerun()
 
 # --- Hiển thị kết quả ---
 if st.session_state.last_qr:
-    st.info(f"✅ Đã quét thành công mã QR: **{st.session_state.last_qr}**")
+    st.info(f"✅ Đã quét thành côngrun mã QR: **{st.session_state.last_qr}**")
 
 if st.session_state.qr_history:
     df = pd.DataFrame(st.session_state.qr_history)
-    st.subheader("Lịch sử quét")
+    st.subheader("📜 Lịch sử quét")
     st.dataframe(df, use_container_width=True)
+st.sidebar.title(f"Chào {st.session_state.username}")
+if st.sidebar.button("🔒 Đăng xuất"):
+    st.session_state.logged_in = False
+    st.session_state.username = ""
+    st.experimental_rerun()

@@ -2,6 +2,14 @@ import streamlit as st
 import pandas as pd
 
 st.title("📊 Trang Thống Kê")
+import streamlit as st
+
+if 'logged_in' not in st.session_state or not st.session_state.logged_in:
+    st.warning("⚠️ Vui lòng đăng nhập trước khi truy cập trang này.")
+    st.stop()  # Ngăn nội dung phía dưới hiển thị
+
+# Nội dung chính của trang
+st.title("📷 Camera quét QR")
 
 # Khởi tạo qr_history nếu chưa có
 if 'qr_history' not in st.session_state:
@@ -45,3 +53,8 @@ if st.session_state.qr_history:
     st.dataframe(df[['data','region','raw']], use_container_width=True)
 else:
     st.info("Chưa có dữ liệu nào được quét. Vui lòng trở về trang Camera để quét mã.")
+    st.sidebar.title(f"Chào {st.session_state.username}")
+if st.sidebar.button("🔒 Đăng xuất"):
+    st.session_state.logged_in = False
+    st.session_state.username = ""
+    st.experimental_rerun()
