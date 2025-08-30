@@ -48,8 +48,8 @@ def classify_qr(qr_data: str) -> str:
 class VideoProcessor(VideoProcessorBase):
     def __init__(self):
         self.detector = cv2.QRCodeDetector()
-        self.last_qr = ""  # Lưu trữ QR code cuối cùng trong instance
-        self.qr_history = []  # Lưu trữ lịch sử trong instance
+        self.last_qr = ""
+        self.qr_history = []
         logger.info("QRCodeDetector initialized.")
 
     def recv(self, frame):
@@ -57,13 +57,14 @@ class VideoProcessor(VideoProcessorBase):
         data, points, _ = self.detector.detectAndDecode(img)
 
         if points is not None and data:
+            # Vẽ khung QR
             points = points.astype(int).reshape(-1, 2)
             for j in range(len(points)):
                 pt1 = tuple(points[j])
                 pt2 = tuple(points[(j + 1) % len(points)])
                 cv2.line(img, pt1, pt2, (0, 255, 0), 2)
 
-                # Sử dụng instance variable thay vì session_state
+                # Lưu vào instance thay vì session_state
             if data != self.last_qr:
                 qr_region = classify_qr(data)
                 qr_entry = {
@@ -76,14 +77,10 @@ class VideoProcessor(VideoProcessorBase):
                 self.last_qr = data
                 logger.info(f"New QR Code detected: {data} in region: {qr_region}")
 
-            cv2.putText(
-                img, data,
-                (points[0][0], points[0][1] - 10),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2
-            )
+            cv2.putText(img, data, (points[0][0], points[0][1] - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
         return av.VideoFrame.from_ndarray(img, format="bgr24")
-
 # --- Run WebRTC ---
 ctx = webrtc_streamer(
     key="qr-camera",
@@ -131,7 +128,23 @@ if ctx:
     logger.info(f"WebRTC session started")
 else:
     logger.error("Failed to initialize WebRTC session.")
+# Sau phần khởi tạo WebRTC
+if ctx.video_processor:
+    if hasattr(ctx.video_processor, 'qr_history'):
+        processor_count = len(ctx.video_processor.qr_history)
+        session_count = len(st.session_state.qr_history)
 
+        if processor_count > session_count:
+            # Đồng bộ dữ liệu mới
+            for entry in ctx.video_processor.qr_history:
+                if entry not in st.session_state.qr_history:
+                    st.session_state.qr_history.append(entry)
+
+            if hasattr(ctx.video_processor, 'last_qr'):
+                st.session_state.last_qr = ctx.video_processor.last_qr
+
+                # Force rerun ngay lập tức
+            st.rerun()
 # THÊM ĐOẠN CODE ĐỒNG BỘ TẠI ĐÂY:
 if ctx.video_processor:
     # Đồng bộ dữ liệu từ processor về session_state
@@ -145,13 +158,14 @@ if ctx.video_processor:
     if hasattr(ctx.video_processor, 'last_qr'):
         st.session_state.last_qr = ctx.video_processor.last_qr
 
-    # Thêm auto-refresh mỗi 2 giây
-    if 'last_refresh' not in st.session_state:
-        st.session_state.last_refresh = time.time()
+    # Thêm auto-refresh mỗi 0.5 giây chỉ khi có WebRTC đang chạy
+    if ctx and ctx.state.playing:
+        if 'last_refresh' not in st.session_state:
+            st.session_state.last_refresh = time.time()
 
-    if time.time() - st.session_state.last_refresh > 1:  # Refresh mỗi 2 giây
-        st.session_state.last_refresh = time.time()
-        st.rerun()
+        if time.time() - st.session_state.last_refresh > 0.5:
+            st.session_state.last_refresh = time.time()
+            st.rerun()
     # Kiểm tra trạng thái của WebRTC
     if ctx:
         logger.info(f"WebRTC session started")
