@@ -45,14 +45,7 @@ st.bar_chart(df_chart, x='Miền', y='Số lượng')
 
 st.write("---")
 
-# Lịch sử quét
-st.subheader("Lịch sử quét mã")
-if st.session_state.qr_history:
-    df = pd.DataFrame(st.session_state.qr_history)
-    st.dataframe(df[['data','region','raw']], use_container_width=True)
-else:
-    st.info("Chưa có dữ liệu nào được quét. Vui lòng trở về trang Camera để quét mã.")
-    st.sidebar.title(f"Chào {st.session_state.username}")
+st.sidebar.title(f"Chào {st.session_state.username}")
 if st.sidebar.button("🔒 Đăng xuất"):
     st.session_state.logged_in = False
     st.session_state.username = ""
