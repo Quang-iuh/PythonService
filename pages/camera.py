@@ -85,13 +85,12 @@ class VideoProcessor(VideoProcessorBase):
 ctx = webrtc_streamer(
     key="qr-camera",
     video_processor_factory=VideoProcessor,
-    media_stream_constraints={
-        "video": {
-            "deviceId": {"exact": "5b2ef598846ad129fcc91822a99438e722b400f0fa87bafebebeb0337cdaf34b"}
-        },
-        "audio": False
+    media_stream_constraints={"video": True, "audio": False},  # Bỏ deviceId cụ thể
+    rtc_configuration={
+        "iceServers": [
+            {"urls": "stun:stun.l.google.com:19302"}
+        ]
     },
-    rtc_configuration={"iceServers": [{"urls": "stun:stun.l.google.com:19302"}]}
 )
 # Thêm vào đầu file sau phần khởi tạo session state
 if 'qr_display_placeholder' not in st.session_state:
