@@ -1,4 +1,8 @@
 import streamlit as st
+import pymodbus
+from pymodbus.client import ModbusTcpClient
+from pymodbus.exceptions import ModbusException
+import pandas as pd
 
 # --- Cấu hình trang ---
 st.set_page_config(
@@ -8,58 +12,191 @@ st.set_page_config(
 )
 
 # --- CSS tùy chỉnh ---
-st.markdown("""  
-<style>  
-    .main-header {  
-        background: linear-gradient(90deg, #2c3e50 0%, #34495e 100%);  
-        padding: 1.5rem;  
-        border-radius: 10px;  
-        color: white;  
-        text-align: center;  
-        margin-bottom: 2rem;  
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  
-    }  
+st.markdown("""    
+<style>    
+    .main-header {    
+        background: linear-gradient(90deg, #2c3e50 0%, #34495e 100%);    
+        padding: 1.5rem;    
+        border-radius: 10px;    
+        color: white;    
+        text-align: center;    
+        margin-bottom: 2rem;    
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);    
+    }    
 
-    .setting-card {  
-        background: #f8f9fa;  
-        border: 1px solid #dee2e6;  
-        border-radius: 10px;  
-        padding: 1.5rem;  
-        margin: 1rem 0;  
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);  
-    }  
+    .setting-card {    
+        background: #f8f9fa;    
+        border: 1px solid #dee2e6;    
+        border-radius: 10px;    
+        padding: 1.5rem;    
+        margin: 1rem 0;    
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);    
+    }    
 
-    .setting-title {  
-        color: #2c3e50;  
-        font-weight: bold;  
-        margin-bottom: 1rem;  
-        border-bottom: 2px solid #3498db;  
-        padding-bottom: 0.5rem;  
-    }  
+    .setting-title {    
+        color: #2c3e50;    
+        font-weight: bold;    
+        margin-bottom: 1rem;    
+        border-bottom: 2px solid #3498db;    
+        padding-bottom: 0.5rem;    
+    }    
 
-    .status-display {  
-        background: #e8f5e8;  
-        border: 1px solid #28a745;  
-        border-radius: 8px;  
-        padding: 1rem;  
-        margin: 1rem 0;  
-    }  
+    .status-display {    
+        background: #e8f5e8;    
+        border: 1px solid #28a745;    
+        border-radius: 8px;    
+        padding: 1rem;    
+        margin: 1rem 0;    
+    }    
 
-    .sidebar-section {  
-        background: #f1f3f4;  
-        padding: 1rem;  
-        border-radius: 8px;  
-        margin: 1rem 0;  
-    }  
-</style>  
+    .sidebar-section {    
+        background: #f1f3f4;    
+        padding: 1rem;    
+        border-radius: 8px;    
+        margin: 1rem 0;    
+    }    
+</style>    
 """, unsafe_allow_html=True)
 
-# --- Header chính ---
-st.markdown("""  
-<div class="main-header">  
-    <h1>⚙️ CÀI ĐẶT HỆ THỐNG</h1>  
-    <p>Điều chỉnh thông số và cấu hình ứng dụng</p>  
-</div>  
+
+# PLC Manager Class với Modbus TCP
+class PLCManager:
+    def __init__(self):
+        self.client = None
+        self.connected = False
+        self.ip = None
+        self.port = 502
+
+    def connect(self, ip, port=502):
+        """Kết nối đến PLC qua Modbus TCP"""
+        try:
+            self.ip = ip
+            self.port = port
+            self.client = ModbusTcpClient(ip, port)
+            self.connected = self.client.connect()
+
+            if self.connected:
+                return True, "Kết nối PLC thành công"
+            else:
+                return False, "Không thể kết nối đến PLC"
+        except Exception as e:
+            self.connected = False
+            return False, f"Lỗi kết nối: {str(e)}"
+
+    def disconnect(self):
+        """Ngắt kết nối PLC"""
+        if self.client and self.connected:
+            self.client.close()
+            self.connected = False
+
+    def read_motor_speed(self, address=0, unit=1):
+        """Đọc tốc độ động cơ từ PLC (Holding Register)"""
+        if not self.connected:
+            return None
+
+        try:
+            # Đọc 2 registers để lấy float value (32-bit)
+            result = self.client.read_holding_registers(address, 2, unit=unit)
+            if result.isError():
+                st.error(f"Lỗi đọc PLC: {result}")
+                return None
+
+                # Convert 2 registers to float (IEEE 754)
+            registers = result.registers
+            speed = self._registers_to_float(registers[0], registers[1])
+            return speed
+
+        except ModbusException as e:
+            st.error(f"Lỗi Modbus: {e}")
+            return None
+        except Exception as e:
+            st.error(f"Lỗi đọc dữ liệu PLC: {e}")
+            return None
+
+    def write_motor_speed(self, speed, address=0, unit=1):
+        """Ghi tốc độ động cơ vào PLC (Holding Register)"""
+        if not self.connected:
+            return False
+
+        try:
+            # Convert float to 2 registers (IEEE 754)
+            reg1, reg2 = self._float_to_registers(speed)
+
+            # Ghi 2 registers
+            result = self.client.write_registers(address, [reg1, reg2], unit=unit)
+            if result.isError():
+                st.error(f"Lỗi ghi PLC: {result}")
+                return False
+
+            return True
+
+        except ModbusException as e:
+            st.error(f"Lỗi Modbus: {e}")
+            return False
+        except Exception as e:
+            st.error(f"Lỗi ghi dữ liệu PLC: {e}")
+            return False
+
+    def read_digital_input(self, address, unit=1):
+        """Đọc digital input từ PLC"""
+        if not self.connected:
+            return None
+
+        try:
+            result = self.client.read_discrete_inputs(address, 1, unit=unit)
+            if result.isError():
+                return None
+            return result.bits[0]
+        except Exception as e:
+            st.error(f"Lỗi đọc digital input: {e}")
+            return None
+
+    def write_digital_output(self, address, value, unit=1):
+        """Ghi digital output vào PLC"""
+        if not self.connected:
+            return False
+
+        try:
+            result = self.client.write_coil(address, value, unit=unit)
+            return not result.isError()
+        except Exception as e:
+            st.error(f"Lỗi ghi digital output: {e}")
+            return False
+
+    def get_connection_status(self):
+        """Kiểm tra trạng thái kết nối"""
+        return {
+            "connected": self.connected,
+            "ip": self.ip,
+            "port": self.port
+        }
+
+    def _float_to_registers(self, value):
+        """Convert float to 2 Modbus registers (IEEE 754)"""
+        import struct
+        # Pack float as big-endian IEEE 754
+        packed = struct.pack('>f', value)
+        # Unpack as 2 16-bit integers
+        reg1, reg2 = struct.unpack('>HH', packed)
+        return reg1, reg2
+
+    def _registers_to_float(self, reg1, reg2):
+        """Convert 2 Modbus registers to float (IEEE 754)"""
+        import struct
+        # Pack 2 16-bit integers
+        packed = struct.pack('>HH', reg1, reg2)
+        # Unpack as big-endian float
+        value = struct.unpack('>f', packed)[0]
+        return value
+
+    # --- Header chính ---
+
+
+st.markdown("""    
+<div class="main-header">    
+    <h1>⚙️ CÀI ĐẶT HỆ THỐNG</h1>    
+    <p>Điều chỉnh thông số và cấu hình ứng dụng</p>    
+</div>    
 """, unsafe_allow_html=True)
 
 # --- Kiểm tra đăng nhập ---
@@ -77,15 +214,25 @@ if 'zoom_level' not in st.session_state:
 if 'speed_motor' not in st.session_state:
     st.session_state.speed_motor = 10.0
 
+# PLC session state
+if 'plc_connected' not in st.session_state:
+    st.session_state.plc_connected = False
+if 'plc_ip' not in st.session_state:
+    st.session_state.plc_ip = "192.168.1.100"
+if 'plc_port' not in st.session_state:
+    st.session_state.plc_port = 502
+if 'plc_unit_id' not in st.session_state:
+    st.session_state.plc_unit_id = 1
+
 # --- Layout 2 cột ---
 col1, col2 = st.columns([1, 1])
 
 with col1:
     # --- Cài đặt Camera ---
-    st.markdown("""  
-    <div class="setting-card">  
-        <h3 class="setting-title">📹 Cài đặt Camera</h3>  
-    </div>  
+    st.markdown("""    
+    <div class="setting-card">    
+        <h3 class="setting-title">📹 Cài đặt Camera</h3>    
+    </div>    
     """, unsafe_allow_html=True)
 
     # Grayscale
@@ -129,10 +276,10 @@ with col1:
 
 with col2:
     # --- Cài đặt Động cơ ---
-    st.markdown("""  
-    <div class="setting-card">  
-        <h3 class="setting-title">⚡ Cài đặt Động cơ</h3>  
-    </div>  
+    st.markdown("""    
+    <div class="setting-card">    
+        <h3 class="setting-title">⚡ Cài đặt Động cơ</h3>    
+    </div>    
     """, unsafe_allow_html=True)
 
     st.markdown("**🚀 Tốc độ động cơ**")
@@ -145,63 +292,88 @@ with col2:
         help="Điều chỉnh tốc độ hoạt động của động cơ"
     )
 
-    # Hiển thị trạng thái
-    st.markdown("**📊 Trạng thái hiện tại**")
-
-    # Metrics
-    col_metric1, col_metric2 = st.columns(2)
-    with col_metric1:
-        st.metric("Zoom Level", f"{st.session_state.zoom_level}x")
-        st.metric("Tốc độ", f"{st.session_state.speed_motor} m/ph")
-
-    with col_metric2:
-        st.metric("Độ phân giải", f"{st.session_state.resolution[0]}x{st.session_state.resolution[1]}")
-        st.metric("Grayscale", "Bật" if st.session_state.grayscale else "Tắt")
-
-    # --- Hiển thị cấu hình đã lưu ---
-st.markdown("### 💾 Cấu hình đã lưu")
-
-config_data = {
-    "Thông số": ["Grayscale", "Zoom Level", "Độ phân giải", "Tốc độ động cơ"],
-    "Giá trị": [
-        "Bật" if st.session_state.grayscale else "Tắt",
-        f"{st.session_state.zoom_level}x",
-        f"{st.session_state.resolution[0]}x{st.session_state.resolution[1]}",
-        f"{st.session_state.speed_motor} m/phút"
-    ]
-}
-
-import pandas as pd
-
-config_df = pd.DataFrame(config_data)
-st.dataframe(config_df, use_container_width=True, hide_index=True)
-
-st.success("✅ Tất cả cài đặt đã được lưu tự động!")
-
-# --- Sidebar ---
-with st.sidebar:
-    st.markdown(f"""  
-    <div class="sidebar-section">  
-        <h3>👤 Người dùng</h3>  
-        <p>Xin chào, <strong>{st.session_state.username}</strong></p>  
-    </div>  
+    # --- Cài đặt PLC ---
+    st.markdown("""    
+    <div class="setting-card">    
+        <h3 class="setting-title">🔌 Kết nối PLC Modbus</h3>    
+    </div>    
     """, unsafe_allow_html=True)
 
-    st.markdown("""  
-    <div class="sidebar-section">  
-        <h3>🔧 Thao tác</h3>  
-    </div>  
-    """, unsafe_allow_html=True)
+    # PLC Connection Settings
+    st.markdown("**🌐 Thông số kết nối**")
 
-    if st.button("🔄 Reset về mặc định", use_container_width=True):
-        st.session_state.grayscale = False
-        st.session_state.zoom_level = 1.0
-        st.session_state.resolution = (640, 480)
-        st.session_state.speed_motor = 10.0
-        st.success("Đã reset về cài đặt mặc định!")
-        st.rerun()
+    col_ip, col_port = st.columns([2, 1])
+    with col_ip:
+        st.session_state.plc_ip = st.text_input(
+            "Địa chỉ IP PLC:",
+            value=st.session_state.plc_ip,
+            help="Nhập địa chỉ IP của PLC"
+        )
 
-    if st.button("🔒 Đăng xuất", use_container_width=True):
-        st.session_state.logged_in = False
-        st.session_state.username = ""
-        st.rerun()
+    with col_port:
+        st.session_state.plc_port = st.number_input(
+            "Port:",
+            min_value=1,
+            max_value=65535,
+            value=st.session_state.plc_port
+        )
+
+    st.session_state.plc_unit_id = st.number_input(
+        "Unit ID:",
+        min_value=1,
+        max_value=255,
+        value=st.session_state.plc_unit_id,
+        help="Modbus Unit ID (thường là 1)"
+    )
+
+    # Connection Controls
+    col_connect, col_disconnect = st.columns(2)
+
+    with col_connect:
+        if st.button("🔗 Kết nối PLC", use_container_width=True):
+            if 'plc_manager' not in st.session_state:
+                st.session_state.plc_manager = PLCManager()
+
+            success, message = st.session_state.plc_manager.connect(
+                st.session_state.plc_ip,
+                st.session_state.plc_port
+            )
+
+            if success:
+                st.session_state.plc_connected = True
+                st.success(message)
+            else:
+                st.session_state.plc_connected = False
+                st.error(message)
+
+    with col_disconnect:
+        if st.button("❌ Ngắt kết nối", use_container_width=True):
+            if 'plc_manager' in st.session_state:
+                st.session_state.plc_manager.disconnect()
+                st.session_state.plc_connected = False
+                st.warning("Đã ngắt kết nối PLC")
+
+                # Status và Controls
+    if st.session_state.plc_connected:
+        st.success("🟢 PLC đã kết nối")
+
+        col_sync, col_test = st.columns(2)
+
+        with col_sync:
+            if st.button("🔄 Đồng bộ tốc độ"):
+                if st.button("🔄 Reset về mặc định", use_container_width=True):
+                    st.session_state.grayscale = False
+                    st.session_state.zoom_level = 1.0
+                    st.session_state.resolution = (640, 480)
+                    st.session_state.speed_motor = 10.0
+                    st.session_state.plc_connected = False
+                    st.session_state.plc_ip = "192.168.1.100"
+                    st.session_state.plc_port = 502
+                    st.session_state.plc_unit_id = 1
+                    st.success("Đã reset về cài đặt mặc định!")
+                    st.rerun()
+
+                if st.button("🔒 Đăng xuất", use_container_width=True):
+                    st.session_state.logged_in = False
+                    st.session_state.username = ""
+                    st.rerun()
