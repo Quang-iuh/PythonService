@@ -3,7 +3,8 @@ import cv2
 from PIL import Image
 import numpy as np
 import pandas as pd
-from qr_storage import save_qr_data
+
+from utils.qr_storage import save_qr_data
 
 
 def classify_qr(qr_data: str) -> str:
