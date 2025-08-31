@@ -1,5 +1,5 @@
 import os
-
+import requests
 import streamlit as st
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 import cv2
@@ -11,6 +11,7 @@ from Component.Camera.CameraHeader import load_css, render_main_header
 from Component.Camera.CameraMetrics import render_system_metrics
 from Component.Camera.CameraSidebar import render_sidebar
 from Component.Camera.CameraData_table import render_qr_history_table
+from Config.config import Config
 from utils.process_uploaded_image import process_uploaded_image
 from utils.qr_processor import process_qr_detection
 from utils.qr_storage import load_qr_data, get_last_qr
@@ -32,7 +33,97 @@ if not check_login():
     st.stop()
 
 
-# Video Processor (simplified)
+# Function để render remote camera với auto-start stream
+def render_remote_camera():
+    """Render camera stream từ Flask service local với auto QR detection"""
+    st.markdown("### 📹 Remote Camera Scanner")
+
+    col_cam, col_control = st.columns([3, 1])
+
+    # Initialize session state
+    if 'camera_started' not in st.session_state:
+        st.session_state.camera_started = False
+    if 'auto_qr_detection' not in st.session_state:
+        st.session_state.auto_qr_detection = False
+
+    with col_control:
+        if st.button("🎬 Start Camera"):
+            try:
+                response = requests.get(Config.get_camera_start_url(), timeout=10)
+                if response.status_code == 200:
+                    st.success("Camera started!")
+                    st.session_state.camera_started = True
+                    st.rerun()
+                else:
+                    st.error("Failed to start camera")
+            except Exception as e:
+                st.error(f"Connection error: {e}")
+
+        if st.button("⏹️ Stop Camera"):
+            try:
+                requests.get(Config.get_camera_stop_url(), timeout=5)
+                st.success("Camera stopped!")
+                st.session_state.camera_started = False
+                st.session_state.auto_qr_detection = False
+                st.rerun()
+            except Exception as e:
+                st.error(f"Connection error: {e}")
+
+                # Toggle auto QR detection
+        if st.session_state.camera_started:
+            st.session_state.auto_qr_detection = st.checkbox(
+                "🔄 Auto QR Detection (200ms)",
+                value=st.session_state.auto_qr_detection
+            )
+
+    with col_cam:
+        # Hiển thị video stream
+        if st.session_state.camera_started:
+            stream_url = Config.get_camera_stream_url()
+            st.markdown(f"""  
+            <div style="text-align: center; border: 2px solid #0066cc; border-radius: 10px; padding: 10px;">  
+                <img src="{stream_url}"   
+                     style="max-width: 100%; height: auto; border-radius: 5px;"   
+                     alt="Camera Stream" />  
+                <p style="margin-top: 10px; color: #666;">Live Camera Feed</p>  
+            </div>  
+            """, unsafe_allow_html=True)
+
+            # Auto QR detection placeholder
+            qr_status_placeholder = st.empty()
+
+            # Auto-polling logic
+            if st.session_state.auto_qr_detection:
+                try:
+                    response = requests.get(Config.get_camera_frame_url(), timeout=2)
+                    if response.status_code == 200:
+                        data = response.json()
+                        if data.get('qr_data'):
+                            qr_data = data['qr_data']
+                            qr_status_placeholder.success(f"✅ QR Detected: {qr_data}")
+
+                            # Process QR detection using existing logic
+                            if process_qr_detection(qr_data):
+                                st.session_state.data_updated = True
+                        else:
+                            qr_status_placeholder.info("🔍 Scanning for QR codes...")
+                    else:
+                        qr_status_placeholder.error("Failed to get frame data")
+                except Exception as e:
+                    qr_status_placeholder.error(f"Connection error: {e}")
+
+                    # Auto-refresh every 200ms
+                time.sleep(1)
+                st.rerun()
+        else:
+            # Placeholder khi camera chưa start
+            st.markdown("""  
+            <div style="text-align: center; border: 2px dashed #ccc; border-radius: 10px; padding: 50px;">  
+                <p style="color: #666; font-size: 18px;">📹</p>  
+                <p style="color: #666;">Click "Start Camera" to begin streaming</p>  
+            </div>  
+            """, unsafe_allow_html=True)
+
 class VideoProcessor(VideoProcessorBase):
     def __init__(self):
         self.detector = cv2.QRCodeDetector()
@@ -80,31 +171,45 @@ col1, col2 = st.columns([2, 1])
 
 with col1:
     st.markdown("### 📹 Camera Scanner")
-    if os.getenv('RENDER') or os.getenv('STREAMLIT_SHARING'):
-        # Production: File upload
-        process_uploaded_image()
-    else:
-        ctx = webrtc_streamer(
-        key="qr-camera",
-        video_processor_factory=VideoProcessor,
-        media_stream_constraints={
-            "video": {
-                "width": {"ideal": 320},
-                "height": {"ideal": 240},
-                "frameRate": {"ideal": 10, "max": 15}
-            },
-            "audio": False
-        },
-        rtc_configuration={
-            "iceServers": [
-                {"urls": "stun:stun.l.google.com:19302"},
-                {"urls": "stun:stun1.l.google.com:19302"},
-                {"urls": "turn:openrelay.metered.ca:80", "username": "openrelayproject",
-                 "credential": "openrelayproject"}
-            ]
-        },
-        async_processing=False
+
+    # Logic với 3 options
+    camera_mode = st.radio(
+        "Select Camera Mode:",
+        ["WebRTC (Local)", "Remote Flask Service", "File Upload"],
+        index=0 if not (os.getenv('RENDER') or os.getenv('STREAMLIT_SHARING')) else 2
     )
+
+    if camera_mode == "WebRTC (Local)":
+        # WebRTC cho local development
+        ctx = webrtc_streamer(
+            key="qr-camera",
+            video_processor_factory=VideoProcessor,
+            media_stream_constraints={
+                "video": {
+                    "width": {"ideal": 320},
+                    "height": {"ideal": 240},
+                    "frameRate": {"ideal": 10, "max": 15}
+                },
+                "audio": False
+            },
+            rtc_configuration={
+                "iceServers": [
+                    {"urls": "stun:stun.l.google.com:19302"},
+                    {"urls": "stun:stun1.l.google.com:19302"},
+                    {"urls": "turn:openrelay.metered.ca:80", "username": "openrelayproject",
+                     "credential": "openrelayproject"}
+                ]
+            },
+            async_processing=False
+        )
+
+    elif camera_mode == "Remote Flask Service":
+        # Flask service với video stream
+        render_remote_camera()
+
+    else:
+        # File upload fallback
+        process_uploaded_image()
 
 with col2:
     render_system_metrics(total_scans, last_qr)

@@ -1,7 +1,12 @@
-streamlit==1.49.0
+streamlit~=1.49.1
 streamlit-webrtc==0.47.7
 opencv-python-headless==4.5.5.62
 pyzbar==0.1.9
 pandas==2.3.2
 opencv-python~=4.12.0.88
-plotly
+plotly~=6.3.0
+
+requests~=2.32.5
+av~=14.4.0
+pillow~=11.3.0
+numpy~=2.2.6
