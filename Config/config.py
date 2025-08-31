@@ -2,7 +2,7 @@ import os
 
 
 class Config:
-    CAMERA_SERVER_URL = os.getenv('CAMERA_SERVER_URL', 'http://192.168.1.11:8000')
+    CAMERA_SERVER_URL = os.getenv('CAMERA_SERVER_URL', 'https://70059b6f137f.ngrok-free.app')
 
     @classmethod
     def get_camera_start_url(cls):
