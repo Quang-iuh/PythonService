@@ -1,3 +1,5 @@
+import os
+
 import streamlit as st
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 import cv2
@@ -9,6 +11,7 @@ from Component.Camera.CameraHeader import load_css, render_main_header
 from Component.Camera.CameraMetrics import render_system_metrics
 from Component.Camera.CameraSidebar import render_sidebar
 from Component.Camera.CameraData_table import render_qr_history_table
+from utils.process_uploaded_image import process_uploaded_image
 from utils.qr_processor import process_qr_detection
 from utils.qr_storage import load_qr_data, get_last_qr
 from utils.auth import check_login
@@ -77,7 +80,11 @@ col1, col2 = st.columns([2, 1])
 
 with col1:
     st.markdown("### 📹 Camera Scanner")
-    ctx = webrtc_streamer(
+    if os.getenv('RENDER') or os.getenv('STREAMLIT_SHARING'):
+        # Production: File upload
+        process_uploaded_image()
+    else:
+        ctx = webrtc_streamer(
         key="qr-camera",
         video_processor_factory=VideoProcessor,
         media_stream_constraints={
