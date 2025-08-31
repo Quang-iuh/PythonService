@@ -80,8 +80,23 @@ with col1:
     ctx = webrtc_streamer(
         key="qr-camera",
         video_processor_factory=VideoProcessor,
-        media_stream_constraints={"video": True, "audio": False},
-        rtc_configuration={"iceServers": [{"urls": "stun:stun.l.google.com:19302"}]},
+        media_stream_constraints={
+            "video": {
+                "width": {"ideal": 320},
+                "height": {"ideal": 240},
+                "frameRate": {"ideal": 10, "max": 15}
+            },
+            "audio": False
+        },
+        rtc_configuration={
+            "iceServers": [
+                {"urls": "stun:stun.l.google.com:19302"},
+                {"urls": "stun:stun1.l.google.com:19302"},
+                {"urls": "turn:openrelay.metered.ca:80", "username": "openrelayproject",
+                 "credential": "openrelayproject"}
+            ]
+        },
+        async_processing=False
     )
 
 with col2:
