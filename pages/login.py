@@ -113,7 +113,7 @@ st.markdown("""
     <strong>🔑 Thông tin đăng nhập:</strong><br>  
     Username: <code>admin</code><br>  
     Password: <code>123456</code><br>  
-    <small>Hoặc click "Demo" để truy cập nhanh</small>  
+    <small>Hoặc click "Truy cập nhanh" để truy cập nhanh</small>  
 </div>  
 """, unsafe_allow_html=True)
 
