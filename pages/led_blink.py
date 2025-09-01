@@ -10,6 +10,10 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+# --- Kiểm tra đăng nhập ---
+if 'logged_in' not in st.session_state or not st.session_state.logged_in:
+    st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
+    st.stop()
 
 # CSS cho LED display
 st.markdown("""  
@@ -334,3 +338,7 @@ else:
 # Auto refresh
 time.sleep(0.5)
 st.rerun()
+if st.button("🔒 Đăng xuất", use_container_width=True):
+    st.session_state.logged_in = False
+    st.session_state.username = ""
+    st.rerun()
