@@ -238,30 +238,34 @@ def process_priority_queue():
         # Monitor QR data và tạo parallel timers
 
 
+# Monitor QR data và xử lý tất cả QR mới
 qr_data = load_qr_data()
 if len(qr_data) > st.session_state.last_qr_count:
-    # Có QR mới
-    new_qr = qr_data[-1]
-    region = new_qr.get("region", "")
+    # Lấy tất cả QR mới, không chỉ QR cuối
+    new_qr_count = len(qr_data) - st.session_state.last_qr_count
+    new_qrs = qr_data[-new_qr_count:]  # Lấy tất cả QR mới
 
-    if region in distance_map:
-        current_time = time.time()
-        delay = distance_map[region] / v if v > 0 else 0
-        arrival_time = current_time + delay
+    for new_qr in new_qrs:
+        region = new_qr.get("region", "")
 
-        # Thêm vào priority queue (sắp xếp theo thời gian đến)
-        qr_item = {
-            'region': region,
-            'data': new_qr.get("data", ""),
-            'time': new_qr.get("time", ""),
-            'detection_time': current_time
-        }
-        heapq.heappush(st.session_state.priority_queue, (arrival_time, qr_item))
+        if region in distance_map:
+            current_time = time.time()
+            delay = distance_map[region] / v if v > 0 else 0
+            arrival_time = current_time + delay
 
-        add_to_log_stack(f"[NEW QR] {region} - Sẽ đến sau {delay:.1f}s")
+            # Tạo timer riêng cho mỗi QR
+            timer_id = f"{region}_{current_time}"
+            st.session_state.active_timers[timer_id] = {
+                'start_time': current_time,
+                'delay': delay,
+                'region': region,
+                'status': 'waiting',
+                'qr_data': new_qr.get("data", "")
+            }
+
+            add_to_log_stack(f"[NEW QR] {region} - Delay: {delay:.1f}s")
 
     st.session_state.last_qr_count = len(qr_data)
-
 # Xử lý parallel processing
 process_parallel_timers()
 process_priority_queue()
