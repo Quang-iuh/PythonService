@@ -102,7 +102,7 @@ with st.container():
                 st.error("❌ Sai thông tin đăng nhập!")
 
     with col_demo:
-        if st.button("🎯 Demo", use_container_width=True):
+        if st.button("🎯 Truy Cập Nhanh", use_container_width=True):
             st.session_state.logged_in = True
             st.session_state.username = "demo_user"
             st.switch_page("Home.py")
@@ -122,8 +122,6 @@ st.markdown('</div>', unsafe_allow_html=True)
 # Footer
 st.markdown("""  
 <div class="login-footer">  
-    <p>🔬 <strong>QR Scanner System v2.0</strong></p>  
-    <p>Công nghệ AI & LED Controller tự động</p>  
 </div>  
 """, unsafe_allow_html=True)
 
