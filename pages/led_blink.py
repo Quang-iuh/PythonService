@@ -112,6 +112,24 @@ st.markdown("""
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
     st.stop()
+    # Thêm vào đầu LED controller
+    st.markdown("### 📅 Chọn ngày xem data")
+    available_dates = get_available_dates()
+
+    if available_dates:
+        selected_date = st.selectbox(
+            "Chọn ngày:",
+            options=available_dates,
+            format_func=lambda x: x.strftime("%Y-%m-%d (%A)"),
+            index=0  # Ngày hôm nay
+        )
+
+        # Load data theo ngày được chọn
+        qr_data = load_qr_data(selected_date)
+        st.info(f"Hiển thị data ngày {selected_date.strftime('%Y-%m-%d')}: {len(qr_data)} QR codes")
+    else:
+        st.warning("Chưa có data nào")
+        qr_data = []
 # Input khoảng cách
 col_input1, col_input2, col_input3 = st.columns(3)
 
