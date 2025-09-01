@@ -19,8 +19,18 @@ def save_qr_data(qr_entry):
 def load_qr_data():
     data_file = "./qr_data.json"
     if os.path.exists(data_file):
-        with open(data_file, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        try:
+            with open(data_file, 'r', encoding='utf-8') as f:
+                content = f.read().strip()
+                if not content:  # File rỗng
+                    return []
+                return json.loads(content)
+        except json.JSONDecodeError:
+            # File bị corrupt, tạo lại file mới
+            return []
+        except Exception as e:
+            print(f"Error loading QR data: {e}")
+            return []
     return []
 
 
