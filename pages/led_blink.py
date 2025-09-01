@@ -10,10 +10,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-# --- Kiểm tra đăng nhập ---
-if 'logged_in' not in st.session_state or not st.session_state.logged_in:
-    st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
-    st.stop()
+
 
 # CSS cho LED display
 st.markdown("""  
@@ -69,6 +66,7 @@ st.markdown("""
 </style>  
 """, unsafe_allow_html=True)
 
+
 # Khởi tạo session state
 if 'distanceMN' not in st.session_state:
     st.session_state.distanceMN = 750
@@ -110,7 +108,10 @@ st.markdown("""
     <p>Xử lý LED song song theo thời gian thực tế</p>  
 </div>  
 """, unsafe_allow_html=True)
-
+# --- Kiểm tra đăng nhập ---
+if 'logged_in' not in st.session_state or not st.session_state.logged_in:
+    st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
+    st.stop()
 # Input khoảng cách
 col_input1, col_input2, col_input3 = st.columns(3)
 
