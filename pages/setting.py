@@ -212,7 +212,7 @@ if "resolution" not in st.session_state:
 if 'zoom_level' not in st.session_state:
     st.session_state.zoom_level = 1.0
 if 'speed_motor' not in st.session_state:
-    st.session_state.speed_motor = 10.0
+    st.session_state.speed_motor = 2.5
 
 # PLC session state
 if 'plc_connected' not in st.session_state:
@@ -285,10 +285,10 @@ with col2:
     st.markdown("**🚀 Tốc độ động cơ**")
     st.session_state.speed_motor = st.slider(
         "Tốc độ (m/phút):",
-        min_value=10.0,
-        max_value=20.0,
+        min_value=2.5,
+        max_value=5.0,
         value=st.session_state.speed_motor,
-        step=1.0,
+        step=0.1,
         help="Điều chỉnh tốc độ hoạt động của động cơ"
     )
 
@@ -365,7 +365,7 @@ with col2:
                     st.session_state.grayscale = False
                     st.session_state.zoom_level = 1.0
                     st.session_state.resolution = (640, 480)
-                    st.session_state.speed_motor = 10.0
+                    st.session_state.speed_motor = 2.5
                     st.session_state.plc_connected = False
                     st.session_state.plc_ip = "192.168.1.100"
                     st.session_state.plc_port = 502
