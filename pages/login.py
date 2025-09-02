@@ -7,7 +7,6 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="collapsed"
 )
-
 # CSS hiện đại
 st.markdown("""  
 <style>  
@@ -108,14 +107,12 @@ with st.container():
             st.switch_page("Home.py")
 
         # Thông tin demo
-st.markdown("""  
-<div class="demo-info">  
+st.markdown("""<div class="demo-info">  
     <strong>🔑 Thông tin đăng nhập:</strong><br>  
     Username: <code>admin</code><br>  
     Password: <code>123456</code><br>  
     <small>Hoặc click "Truy cập nhanh" để truy cập nhanh</small>  
-</div>  
-""", unsafe_allow_html=True)
+</div>    """, unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
 

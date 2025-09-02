@@ -2,7 +2,42 @@
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     min-height: 100vh;
 }
+.login-container {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
 
+    .login-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 20px 20px 0 0;
+        color: white;
+        text-align: center;
+    }
+
+    .login-form {
+        background: white;
+        padding: 2rem;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: 1px solid #e1e5e9;
+    }
+
+    .login-footer {
+        text-align: center;
+        margin-top: 2rem;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .demo-info {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-top: 1rem;
+        border-left: 4px solid #28a745;
+    }
 /* Card đăng nhập */
 .login-card {
     background: rgba(255, 255, 255, 0.95);
@@ -17,9 +52,6 @@
 }
 
 /* Animation */
-.login-card {
-    animation: fadeInUp 0.6s ease-out;
-}
 
 @keyframes fadeInUp {
     from {
@@ -53,21 +85,7 @@ background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     }
 
     /* Card đăng nhập */
-    .login-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        max-width: 450px;
-        width: 100%;
-        text-align: center;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
 
-    /* Logo và tiêu đề */
-    .login-header {
-        margin-bottom: 1rem;
-    }
 
     .login-title {
         font-size: 2.5rem;
@@ -120,13 +138,6 @@ background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     }
 
     /* Footer */
-    .login-footer {
-        margin-top: 2rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid #e9ecef;
-        color: #6c757d;
-        font-size: 0.9rem;
-    }
 
     /* Responsive */
     @media (max-width: 768px) {

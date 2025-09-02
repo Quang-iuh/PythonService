@@ -1,96 +1,54 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from utils.qr_storage import load_qr_data  # Import hàm load dữ liệu từ file JSON
-
-# --- Cấu hình trang ---
+from utils.qr_storage import load_qr_data, get_available_dates
+from Component.Camera.CameraHeader import load_css
+# Cấu hình trang
 st.set_page_config(
     page_title="📊 Thống kê & Báo cáo",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+load_css("dashboard.css")
+# CSS tùy chỉnh
 
-# --- CSS tùy chỉnh ---
-st.markdown("""    
-<style>    
-    .main-header {    
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);    
-        padding: 1.5rem;    
-        border-radius: 10px;    
-        color: white;    
-        text-align: center;    
-        margin-bottom: 2rem;    
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);    
-    }    
-
-    .metric-card {    
-        background: #ffffff;    
-        border: 1px solid #e1e5e9;    
-        border-radius: 10px;    
-        padding: 1.5rem;    
-        margin: 0.5rem 0;    
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);    
-        text-align: center;    
-    }    
-
-    .metric-value {    
-        font-size: 2.5rem;    
-        font-weight: bold;    
-        color: #2c3e50;    
-        margin-bottom: 0.5rem;    
-    }    
-
-    .metric-label {    
-        color: #6c757d;    
-        font-size: 1rem;    
-    }    
-
-    .chart-container {    
-        background: #ffffff;    
-        border: 1px solid #e1e5e9;    
-        border-radius: 10px;    
-        padding: 1.5rem;    
-        margin: 1rem 0;    
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);    
-    }    
-
-    .data-table {    
-        border: 1px solid #dee2e6;    
-        border-radius: 8px;    
-        overflow: hidden;    
-    }    
-
-    .sidebar-section {    
-        background: #f8f9fa;    
-        padding: 1rem;    
-        border-radius: 8px;    
-        margin: 1rem 0;    
-        border-left: 4px solid #667eea;    
-    }    
-</style>    
+# Header chính
+st.markdown("""        
+<div class="main-header">        
+    <h1>📊 THỐNG KÊ & BÁO CÁO</h1>  
+    <p>Phân tích dữ liệu quét mã QR theo thời gian thực</p>        
+</div>        
 """, unsafe_allow_html=True)
-
-# --- Header chính ---
-st.markdown("""    
-<div class="main-header">    
-    <h1>📊 THỐNG KÊ & BÁO CÁO</h1>    
-    <p>Phân tích dữ liệu quét mã QR theo thời gian thực</p>    
-</div>    
-""", unsafe_allow_html=True)
-
-# --- Kiểm tra đăng nhập ---
+# Kiểm tra đăng nhập
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
     st.stop()
 
-# --- Load dữ liệu từ file JSON ---
-try:
-    qr_history = load_qr_data()  # Thay thế st.session_state.qr_history
-except Exception as e:
-    st.error(f"Lỗi khi tải dữ liệu: {e}")
+# Date Filter
+st.markdown("""    
+<div class="date-filter">    
+    <h3>📅 Chọn ngày xem data</h3>    
+</div>    
+""", unsafe_allow_html=True)
+
+available_dates = get_available_dates()
+
+if available_dates:
+    selected_date = st.selectbox(
+        "Chọn ngày:",
+        options=available_dates,
+        format_func=lambda x: x.strftime("%Y-%m-%d (%A)"),
+        index=0
+    )
+
+    # Load data theo ngày được chọn
+    qr_history = load_qr_data(selected_date)
+    st.info(f"📊 Hiển thị data ngày {selected_date.strftime('%Y-%m-%d')}: {len(qr_history)} QR codes")
+else:
+    st.warning("Chưa có data nào")
     qr_history = []
 
-# --- Tính toán thống kê ---
+# Tính toán thống kê
 total_scans = len(qr_history)
 
 # Tách dữ liệu theo miền
@@ -101,60 +59,62 @@ unique_other = {item["data"] for item in qr_history if item["region"] == "Miền
 
 unique_scans = len(unique_north | unique_central | unique_south | unique_other)
 
-# --- Metrics Dashboard ---
+# Metrics Dashboard
 st.markdown("## 📈 Tổng quan thống kê")
 
 col1, col2, col3, col4, col5 = st.columns(5)
-
+st.markdown('<div class="metric_card">', unsafe_allow_html=True)
+st.markdown('<div class="metric-value">', unsafe_allow_html=True)
+st.markdown('<div class="metric-label">', unsafe_allow_html=True)
 with col1:
-    st.markdown(f"""    
-    <div class="metric-card">    
-        <div class="metric-value">{total_scans}</div>    
-        <div class="metric-label">Tổng số quét</div>    
-    </div>    
+    st.markdown(f"""        
+    <div class="metric-card">        
+        <div class="metric-value">{total_scans}</div>        
+        <div class="metric-label">Tổng số quét</div>        
+    </div>        
     """, unsafe_allow_html=True)
 
 with col2:
-    st.markdown(f"""    
-    <div class="metric-card">    
-        <div class="metric-value">{unique_scans}</div>    
-        <div class="metric-label">Mã duy nhất</div>    
-    </div>    
+    st.markdown(f"""        
+    <div class="metric-card">        
+        <div class="metric-value">{unique_scans}</div>        
+        <div class="metric-label">Mã duy nhất</div>        
+    </div>        
     """, unsafe_allow_html=True)
 
 with col3:
-    st.markdown(f"""    
-    <div class="metric-card">    
-        <div class="metric-value">{len(unique_north)}</div>    
-        <div class="metric-label">Miền Bắc</div>    
-    </div>    
+    st.markdown(f"""        
+    <div class="metric-card">        
+        <div class="metric-value">{len(unique_north)}</div>        
+        <div class="metric-label">Miền Bắc</div>        
+    </div>        
     """, unsafe_allow_html=True)
 
 with col4:
-    st.markdown(f"""    
-    <div class="metric-card">    
-        <div class="metric-value">{len(unique_central)}</div>    
-        <div class="metric-label">Miền Trung</div>    
-    </div>    
+    st.markdown(f"""        
+    <div class="metric-card">        
+        <div class="metric-value">{len(unique_central)}</div>        
+        <div class="metric-label">Miền Trung</div>        
+    </div>        
     """, unsafe_allow_html=True)
 
 with col5:
-    st.markdown(f"""    
-    <div class="metric-card">    
-        <div class="metric-value">{len(unique_south)}</div>    
-        <div class="metric-label">Miền Nam</div>    
-    </div>    
+    st.markdown(f"""        
+    <div class="metric-card">        
+        <div class="metric-value">{len(unique_south)}</div>        
+        <div class="metric-label">Miền Nam</div>        
+    </div>        
     """, unsafe_allow_html=True)
-
-# --- Layout 2 cột cho biểu đồ ---
-if qr_history:  # Thay đổi từ st.session_state.qr_history
+st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+# Layout 2 cột cho biểu đồ
+if qr_history:
     col_chart1, col_chart2 = st.columns(2)
 
     with col_chart1:
-        st.markdown("""    
-        <div class="chart-container">    
-            <h3>📊 Phân bố theo miền</h3>    
-        </div>    
+        st.markdown("""        
+        <div class="chart-container">        
+            <h3>📊 Phân bố theo miền</h3>        
+        </div>        
         """, unsafe_allow_html=True)
 
         # Pie chart
@@ -172,10 +132,10 @@ if qr_history:  # Thay đổi từ st.session_state.qr_history
             st.plotly_chart(fig_pie, use_container_width=True)
 
     with col_chart2:
-        st.markdown("""    
-        <div class="chart-container">    
-            <h3>📈 Biểu đồ cột</h3>    
-        </div>    
+        st.markdown("""        
+        <div class="chart-container">        
+            <h3>📈 Biểu đồ cột</h3>        
+        </div>        
         """, unsafe_allow_html=True)
 
         # Bar chart
@@ -186,30 +146,24 @@ if qr_history:  # Thay đổi từ st.session_state.qr_history
             fig_bar.update_layout(height=400, showlegend=False)
             st.plotly_chart(fig_bar, use_container_width=True)
 
-            # --- Bảng dữ liệu chi tiết ---
+            # Bảng dữ liệu chi tiết (chỉ có filter theo miền)
     st.markdown("## 📋 Lịch sử quét chi tiết")
 
-    df = pd.DataFrame(qr_history)  # Thay đổi từ st.session_state.qr_history
+    df = pd.DataFrame(qr_history)
 
-    # Filters
-    col_filter1, col_filter2 = st.columns(2)
-
-    with col_filter1:
-        region_filter = st.selectbox(
-            "Lọc theo miền:",
-            ["Tất cả"] + list(df['region'].unique()) if not df.empty else ["Tất cả"]
-        )
-
-    with col_filter2:
-        if not df.empty:
-            date_filter = st.date_input("Lọc theo ngày:", value=None)
-
-            # Apply filters
+    # Chỉ có filter theo miền
+    region_filter = st.selectbox(
+        "Lọc theo miền:",
+        ["Tất cả"] + list(df['region'].unique()) if not df.empty else ["Tất cả"]
+    )
+    st.markdown('<div class="date-filter">', unsafe_allow_html=True)
+    # Apply filter
     filtered_df = df.copy()
     if region_filter != "Tất cả" and not df.empty:
         filtered_df = filtered_df[filtered_df['region'] == region_filter]
 
         # Display table
+    st.markdown('<div class="data-table">', unsafe_allow_html=True)
     if not filtered_df.empty:
         st.markdown('<div class="data-table">', unsafe_allow_html=True)
         st.dataframe(
@@ -224,31 +178,31 @@ if qr_history:  # Thay đổi từ st.session_state.qr_history
         st.download_button(
             label="📥 Tải xuống CSV",
             data=csv,
-            file_name=f"qr_data_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            file_name=f"qr_data_{selected_date.strftime('%Y%m%d')}.csv",
             mime="text/csv"
         )
     else:
-        st.info("🔍 Chưa có dữ liệu nào được quét. Vui lòng trở về trang Camera để quét mã.")
+        st.info("🔍 Không có dữ liệu cho bộ lọc đã chọn.")
 
 else:
     st.info("🔍 Chưa có dữ liệu nào được quét. Vui lòng trở về trang Camera để quét mã.")
 
-# --- Sidebar ---
+# Sidebar
 with st.sidebar:
-    st.markdown(f"""    
-    <div class="sidebar-section">    
-        <h3>👤 Người dùng</h3>    
-        <p>Xin chào, <strong>{st.session_state.username}</strong></p>    
-    </div>    
+    st.markdown(f"""        
+    <div class="sidebar-section">        
+        <h3>👤 Người dùng</h3>        
+        <p>Xin chào, <strong>{st.session_state.get('username', 'User')}</strong></p>        
+    </div>        
+    """, unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-section">', unsafe_allow_html=True)
+    st.markdown("""        
+    <div class="sidebar-section">        
+        <h3>📊 Thống kê nhanh</h3>        
+    </div>        
     """, unsafe_allow_html=True)
 
-    st.markdown("""    
-    <div class="sidebar-section">    
-        <h3>📊 Thống kê nhanh</h3>    
-    </div>    
-    """, unsafe_allow_html=True)
-
-    if qr_history:  # Thay đổi từ st.session_state.qr_history
+    if qr_history:
         st.metric("Tổng quét", total_scans)
         st.metric("Mã duy nhất", unique_scans)
 

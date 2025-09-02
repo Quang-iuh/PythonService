@@ -115,7 +115,7 @@ with col2:
     """, unsafe_allow_html=True)
 
     if st.button("💡 LED Control", use_container_width=True):
-        st.switch_page("pages/led_controller.py")
+        st.switch_page("pages/Led_blink.py")
 
 with col3:
     st.markdown("""  

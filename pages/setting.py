@@ -3,62 +3,16 @@ import pymodbus
 from pymodbus.client import ModbusTcpClient
 from pymodbus.exceptions import ModbusException
 import pandas as pd
-
+from Component.Camera.CameraHeader import load_css
 # --- Cấu hình trang ---
 st.set_page_config(
     page_title="⚙️ Cài đặt hệ thống",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+load_css("SettingStyle.css")
 
 # --- CSS tùy chỉnh ---
-st.markdown("""    
-<style>    
-    .main-header {    
-        background: linear-gradient(90deg, #2c3e50 0%, #34495e 100%);    
-        padding: 1.5rem;    
-        border-radius: 10px;    
-        color: white;    
-        text-align: center;    
-        margin-bottom: 2rem;    
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);    
-    }    
-
-    .setting-card {    
-        background: #f8f9fa;    
-        border: 1px solid #dee2e6;    
-        border-radius: 10px;    
-        padding: 1.5rem;    
-        margin: 1rem 0;    
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);    
-    }    
-
-    .setting-title {    
-        color: #2c3e50;    
-        font-weight: bold;    
-        margin-bottom: 1rem;    
-        border-bottom: 2px solid #3498db;    
-        padding-bottom: 0.5rem;    
-    }    
-
-    .status-display {    
-        background: #e8f5e8;    
-        border: 1px solid #28a745;    
-        border-radius: 8px;    
-        padding: 1rem;    
-        margin: 1rem 0;    
-    }    
-
-    .sidebar-section {    
-        background: #f1f3f4;    
-        padding: 1rem;    
-        border-radius: 8px;    
-        margin: 1rem 0;    
-    }    
-</style>    
-""", unsafe_allow_html=True)
-
-
 # PLC Manager Class với Modbus TCP
 class PLCManager:
     def __init__(self):
