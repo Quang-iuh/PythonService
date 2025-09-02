@@ -174,7 +174,7 @@ if qr_history:
         st.markdown('</div>', unsafe_allow_html=True)
 
         # Download button
-        csv = filtered_df.to_csv(index=False)
+        csv = filtered_df.to_csv(index=False, encoding='utf-8-sig')
         st.download_button(
             label="📥 Tải xuống CSV",
             data=csv,
@@ -220,6 +220,6 @@ with st.sidebar:
     st.markdown("---")
 
     if st.button("🔒 Đăng xuất", use_container_width=True):
-        st.session_state.logged_in = False
+        st.session_state.logged_in = False,
         st.session_state.username = ""
         st.switch_page("pages/login.py")

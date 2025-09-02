@@ -52,5 +52,23 @@
     "type": "QRCODE",
     "time": "2025-09-02 21:13:56",
     "region": "Miền Bắc"
+  },
+  {
+    "data": "DH452344, Mien Nam, Áo thun (SP5043)",
+    "type": "QRCODE",
+    "time": "2025-09-02 21:30:25",
+    "region": "Miền Nam"
+  },
+  {
+    "data": "DH903019, Mien Trung, Ba lo (SP3014)",
+    "type": "QRCODE",
+    "time": "2025-09-02 21:30:27",
+    "region": "Miền Trung"
+  },
+  {
+    "data": "DH944755, Mien Bac, Binh giu nhiet (SP8720)",
+    "type": "QRCODE",
+    "time": "2025-09-02 21:30:33",
+    "region": "Miền Bắc"
   }
 ]
