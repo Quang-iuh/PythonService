@@ -1,7 +1,6 @@
 from flask import Flask, Response, jsonify
 import cv2
-import threading
-import time
+
 from qr_storage import save_qr_data
 import pandas as pd
 

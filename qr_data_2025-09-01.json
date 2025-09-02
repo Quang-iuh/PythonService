@@ -148,5 +148,17 @@
     "type": "QRCODE",
     "time": "2025-09-01 14:59:59",
     "region": "Miền Trung"
+  },
+  {
+    "data": "DH944755, Mien Bac, Binh giu nhiet (SP8720)",
+    "type": "QRCODE",
+    "time": "2025-09-01 20:46:22",
+    "region": "Miền Bắc"
+  },
+  {
+    "data": "DH452344, Mien Nam, Áo thun (SP5043)",
+    "type": "QRCODE",
+    "time": "2025-09-01 20:48:34",
+    "region": "Miền Nam"
   }
 ]
