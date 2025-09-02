@@ -1,6 +1,8 @@
 import streamlit as st
 import time
 from datetime import datetime
+
+from pages.Dashboard import qr_history, total_scans, unique_scans, unique_north, unique_central, unique_south
 from utils.qr_storage import load_qr_data
 from Component.Camera.CameraHeader import load_css
 
@@ -225,7 +227,42 @@ if st.session_state.log_stack:
         st.text(log)
 else:
     st.info("Chưa có log nào...")
+# Sidebar
+with st.sidebar:
+    st.markdown(f"""        
+    <div class="sidebar-section">        
+        <h3>👤 Người dùng</h3>        
+        <p>Xin chào, <strong>{st.session_state.get('username', 'User')}</strong></p>        
+    </div>        
+    """, unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-section">', unsafe_allow_html=True)
+    st.markdown("""        
+    <div class="sidebar-section">        
+        <h3>📊 Thống kê nhanh</h3>        
+    </div>        
+    """, unsafe_allow_html=True)
 
+    if qr_history:
+        st.metric("Tổng quét", total_scans)
+        st.metric("Mã duy nhất", unique_scans)
+
+        # Tỷ lệ phần trăm
+        if total_scans > 0:
+            north_pct = round(len(unique_north) / unique_scans * 100, 1) if unique_scans > 0 else 0
+            central_pct = round(len(unique_central) / unique_scans * 100, 1) if unique_scans > 0 else 0
+            south_pct = round(len(unique_south) / unique_scans * 100, 1) if unique_scans > 0 else 0
+
+            st.write("**Tỷ lệ theo miền:**")
+            st.write(f"🔵 Miền Bắc: {north_pct}%")
+            st.write(f"🟡 Miền Trung: {central_pct}%")
+            st.write(f"🔴 Miền Nam: {south_pct}%")
+
+    st.markdown("---")
+
+    if st.button("🔒 Đăng xuất", use_container_width=True):
+        st.session_state.logged_in = False,
+        st.session_state.username = ""
+        st.switch_page("pages/login.py")
 # Auto refresh
 time.sleep(0.5)
 st.rerun()
