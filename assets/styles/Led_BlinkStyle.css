@@ -28,11 +28,6 @@
     text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
-.led-off { background-color: #666; }
-.led-red { background-color: #ff4444; box-shadow: 0 0 20px #ff4444; }
-.led-yellow { background-color: #ffdd44; box-shadow: 0 0 20px #ffdd44; }
-.led-green { background-color: #44ff44; box-shadow: 0 0 20px #44ff44; }
-
 .region-info {
     text-align: center;
     margin-top: 10px;

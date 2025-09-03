@@ -15,7 +15,14 @@ st.set_page_config(
 
 # Load CSS từ file external
 load_css("Led_blinkStyle.css")
-
+st.markdown("""  
+<style>  
+.led-off { background-color: #666; }  
+.led-red { background-color: #ff4444; box-shadow: 0 0 20px #ff4444; }  
+.led-yellow { background-color: #ffdd44; box-shadow: 0 0 20px #ffdd44; }  
+.led-green { background-color: #44ff44; box-shadow: 0 0 20px #44ff44; }  
+</style>  
+""", unsafe_allow_html=True)
 # Khởi tạo session state
 if 'distanceMN' not in st.session_state:
     st.session_state.distanceMN = 750
