@@ -89,6 +89,8 @@ if 'cb2_trigger_simulation' not in st.session_state:
     st.session_state.cb2_trigger_simulation = False
 if 'processing_package' not in st.session_state:
     st.session_state.processing_package = None
+if 'led_timer' not in st.session_state:
+    st.session_state.led_timer = None
 
 # Kiểm tra đăng nhập
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
@@ -166,7 +168,7 @@ def process_new_packages():
 
 
 def simulate_cb2_sensor():
-    """CB2 Sensor: PLC processing và dequeue"""
+    """CB2 Sensor: PLC processing với LED blink được cải thiện"""
     if st.session_state.package_queue and st.session_state.cb2_trigger_simulation:
         # CB2 Sensor triggered - Dequeue FIFO
         current_package = st.session_state.package_queue.popleft()
@@ -176,31 +178,42 @@ def simulate_cb2_sensor():
         # Lưu package đang xử lý
         st.session_state.processing_package = current_package
 
-        # PLC Communication: DB1 = Package ID, DB2 = Region Code
+        # PLC Communication
         add_to_log_stack(f"[CB2] Package {package_id} detected at sorting position")
         add_to_log_stack(f"[PLC] DB1={package_id}, DB2={region_code} → Send to {region_name}")
 
-        # Kích hoạt LED/Xy lanh
+        # Kích hoạt LED và set timer
         if region_name in st.session_state.led_status:
             st.session_state.led_status[region_name] = True
-            add_to_log_stack(f"[CYLINDER] {region_name} activated for Package {package_id}")
+            st.session_state.led_timer = time.time() + 1.0  # LED sáng trong 3s
+            add_to_log_stack(f"[LED ON] {region_name} sáng!")
 
-            # Tự động tắt LED sau 2s (simulation)
-            time.sleep(0.1)  # Simulation delay
-            st.session_state.led_status[region_name] = False
-            add_to_log_stack(f"[CYLINDER] {region_name} deactivated - Package {package_id} sorted")
-
-            # Reset processing package
-        st.session_state.processing_package = None
+            # Reset trigger ngay lập tức để tránh loop
         st.session_state.cb2_trigger_simulation = False
+        st.session_state.processing_package = None
 
-    # Xử lý packages mới
+
+def check_led_timer():
+    """Kiểm tra và tắt LED sau thời gian quy định"""
+    if hasattr(st.session_state, 'led_timer') and st.session_state.led_timer:
+        if time.time() >= st.session_state.led_timer:
+            # Tắt tất cả LED
+            for region in st.session_state.led_status:
+                if st.session_state.led_status[region]:
+                    st.session_state.led_status[region] = False
+                    add_to_log_stack(f"[LED OFF] {region} tắt")
+            st.session_state.led_timer = None
+
+        # Xử lý packages mới
 
 
 process_new_packages()
 
 # Xử lý CB2 sensor
 simulate_cb2_sensor()
+
+# Kiểm tra LED timer
+check_led_timer()
 
 # Control Panel
 st.markdown("## 🎛️ Control Panel")
@@ -300,7 +313,7 @@ if st.session_state.log_stack:
 else:
     st.info("Chưa có log nào...")
 
-# Sidebar (tiếp theo)
+# Sidebar
 with st.sidebar:
     st.markdown(f"""  
     <div class="sidebar-section">  
@@ -328,6 +341,7 @@ with st.sidebar:
         st.session_state.username = ""
         st.switch_page("pages/login.py")
 
-    # Auto refresh
-time.sleep(0.5)
-st.rerun()
+        # Auto refresh
+if not st.session_state.cb2_trigger_simulation:
+    time.sleep(0.5)
+    st.rerun()
