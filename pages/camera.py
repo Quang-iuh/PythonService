@@ -175,7 +175,7 @@ with col1:
     # Logic với 3 options
     camera_mode = st.radio(
         "Select Camera Mode:",
-        ["WebRTC (Local)", "Remote Flask Service", "File Upload"],
+        ["WebRTC (Local)", "File Upload"],
         index=0 if not (os.getenv('RENDER') or os.getenv('STREAMLIT_SHARING')) else 2
     )
 
@@ -203,9 +203,6 @@ with col1:
             async_processing=False
         )
 
-    elif camera_mode == "Remote Flask Service":
-        # Flask service với video stream
-        render_remote_camera()
 
     else:
         # File upload fallback

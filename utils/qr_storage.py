@@ -76,7 +76,7 @@ def get_available_dates():
     dates = []
     for file in files:
         try:
-            date_str = file.replace('qr_data', '').replace('.json', '')
+            date_str = file.replace('qr_data_', '').replace('.json', '')
             date_obj = datetime.strptime(date_str, '%Y-%m-%d')
             dates.append(date_obj)
         except ValueError:

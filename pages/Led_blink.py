@@ -13,13 +13,60 @@ st.set_page_config(
 )
 
 # Load CSS
-load_css("Led_blinkStyle.css")
+load_css("Led_BlinkStyle.css")
 st.markdown("""  
 <style>  
+.main-header {  
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);  
+    padding: 1.5rem;  
+    border-radius: 10px;  
+    color: white;  
+    text-align: center;  
+    margin-bottom: 2rem;  
+}  
+.led-container {  
+    display: flex;  
+    justify-content: center;  
+    align-items: center;  
+    margin: 20px 0;  
+}  
+.led-circle {  
+    width: 80px;  
+    height: 80px;  
+    border-radius: 50%;  
+    border: 3px solid #333;  
+    margin: 0 20px;  
+    display: flex;  
+    align-items: center;  
+    justify-content: center;  
+    font-weight: bold;  
+    color: white;  
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);  
+}  
 .led-off { background-color: #666; }  
 .led-red { background-color: #ff4444; box-shadow: 0 0 20px #ff4444; }  
 .led-yellow { background-color: #ffdd44; box-shadow: 0 0 20px #ffdd44; }  
 .led-green { background-color: #44ff44; box-shadow: 0 0 20px #44ff44; }  
+.region-info {  
+    text-align: center;  
+    margin-top: 10px;  
+    font-size: 14px;  
+    color: #666;  
+}  
+.active-timer {  
+    background: #fff3e0;  
+    padding: 8px;  
+    margin: 3px 0;  
+    border-radius: 3px;  
+    border-left: 3px solid #ff9800;  
+}  
+.sidebar-section {  
+    background: #f8f9fa;  
+    padding: 1rem;  
+    border-radius: 8px;  
+    margin: 1rem 0;  
+    border-left: 4px solid #667eea;  
+}  
 </style>  
 """, unsafe_allow_html=True)
 
@@ -40,6 +87,8 @@ if 'last_qr_count' not in st.session_state:
     st.session_state.last_qr_count = 0
 if 'cb2_trigger_simulation' not in st.session_state:
     st.session_state.cb2_trigger_simulation = False
+if 'processing_package' not in st.session_state:
+    st.session_state.processing_package = None
 
 # Kiểm tra đăng nhập
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
@@ -80,8 +129,19 @@ def classify_qr_to_region_code(region):
     return region_mapping.get(region, 0)
 
 
+def region_code_to_name(code):
+    """Convert region code to name"""
+    code_mapping = {
+        1: "Miền Nam",
+        2: "Miền Bắc",
+        3: "Miền Trung",
+        0: "Miền khác"
+    }
+    return code_mapping.get(code, "Miền khác")
+
+
 def process_new_packages():
-    """Xử lý packages mới - Counter-based approach"""
+    """CB1 Sensor + Camera: Xử lý packages mới"""
     if len(qr_data) > st.session_state.last_qr_count:
         # Lấy tất cả QR mới
         new_qr_count = len(qr_data) - st.session_state.last_qr_count
@@ -100,24 +160,25 @@ def process_new_packages():
             package_address = (package_id, region_code)
             st.session_state.package_queue.append(package_address)
 
-            add_to_log_stack(f"[NEW PACKAGE] ID:{package_id}, Region:{region} (Code:{region_code})")
+            add_to_log_stack(f"[CB1+CAMERA] Package ID:{package_id}, Region:{region} (Code:{region_code})")
 
         st.session_state.last_qr_count = len(qr_data)
 
 
 def simulate_cb2_sensor():
-    """Mô phỏng CB2 sensor trigger và PLC processing"""
+    """CB2 Sensor: PLC processing và dequeue"""
     if st.session_state.package_queue and st.session_state.cb2_trigger_simulation:
         # CB2 Sensor triggered - Dequeue FIFO
         current_package = st.session_state.package_queue.popleft()
         package_id, region_code = current_package
+        region_name = region_code_to_name(region_code)
 
-        # Convert region code back to region name for display
-        code_to_region = {1: "Miền Nam", 2: "Miền Bắc", 3: "Miền Trung", 0: "Miền khác"}
-        region_name = code_to_region.get(region_code, "Miền khác")
+        # Lưu package đang xử lý
+        st.session_state.processing_package = current_package
 
         # PLC Communication: DB1 = Package ID, DB2 = Region Code
-        add_to_log_stack(f"[PLC] DB1={package_id}, DB2={region_code} → Activate {region_name}")
+        add_to_log_stack(f"[CB2] Package {package_id} detected at sorting position")
+        add_to_log_stack(f"[PLC] DB1={package_id}, DB2={region_code} → Send to {region_name}")
 
         # Kích hoạt LED/Xy lanh
         if region_name in st.session_state.led_status:
@@ -127,8 +188,10 @@ def simulate_cb2_sensor():
             # Tự động tắt LED sau 2s (simulation)
             time.sleep(0.1)  # Simulation delay
             st.session_state.led_status[region_name] = False
-            add_to_log_stack(f"[CYLINDER] {region_name} deactivated")
+            add_to_log_stack(f"[CYLINDER] {region_name} deactivated - Package {package_id} sorted")
 
+            # Reset processing package
+        st.session_state.processing_package = None
         st.session_state.cb2_trigger_simulation = False
 
     # Xử lý packages mới
@@ -136,10 +199,13 @@ def simulate_cb2_sensor():
 
 process_new_packages()
 
+# Xử lý CB2 sensor
+simulate_cb2_sensor()
+
 # Control Panel
 st.markdown("## 🎛️ Control Panel")
 
-col_control1, col_control2, col_control3 = st.columns(3)
+col_control1, col_control2, col_control3, col_control4 = st.columns(4)
 
 with col_control1:
     st.metric("Package Counter", st.session_state.package_counter)
@@ -148,7 +214,14 @@ with col_control2:
     st.metric("Queue Size", len(st.session_state.package_queue))
 
 with col_control3:
-    if st.button("🔄 Simulate CB2 Trigger"):
+    if st.session_state.processing_package:
+        pkg_id, region_code = st.session_state.processing_package
+        st.metric("Processing", f"ID:{pkg_id}")
+    else:
+        st.metric("Processing", "None")
+
+with col_control4:
+    if st.button("🔄 Simulate CB2 Trigger", disabled=len(st.session_state.package_queue) == 0):
         st.session_state.cb2_trigger_simulation = True
         st.rerun()
 
@@ -156,14 +229,14 @@ with col_control3:
 st.markdown("### 📊 Package Queue (FIFO)")
 if st.session_state.package_queue:
     queue_data = []
-    code_to_region = {1: "Miền Nam", 2: "Miền Bắc", 3: "Miền Trung", 0: "Miền khác"}
 
     for i, (pkg_id, region_code) in enumerate(st.session_state.package_queue):
         queue_data.append({
             "Position": i + 1,
             "Package ID": pkg_id,
             "Region Code": region_code,
-            "Region": code_to_region.get(region_code, "Miền khác")
+            "Region": region_code_to_name(region_code),
+            "Status": "Waiting for CB2"
         })
 
     st.dataframe(queue_data, use_container_width=True)
@@ -199,20 +272,20 @@ col_info1, col_info2 = st.columns(2)
 with col_info1:
     st.markdown("### ⚙️ Thông số hệ thống")
     st.metric("Tổng QR đã quét", len(qr_data))
-    st.metric("Packages đã xử lý", st.session_state.package_counter)
+    st.metric("Packages đã xử lý", st.session_state.package_counter - len(st.session_state.package_queue))
 
 with col_info2:
     st.markdown("### 📋 Next Package in Queue")
     if st.session_state.package_queue:
         next_package = st.session_state.package_queue[0]
         pkg_id, region_code = next_package
-        code_to_region = {1: "Miền Nam", 2: "Miền Bắc", 3: "Miền Trung", 0: "Miền khác"}
-        region_name = code_to_region.get(region_code, "Miền khác")
+        region_name = region_code_to_name(region_code)
 
         st.markdown(f"""  
         <div class="active-timer">  
             <strong>Package ID: {pkg_id}</strong><br>  
-            <small>Region: {region_name} (Code: {region_code})</small>  
+            <small>Region: {region_name} (Code: {region_code})</small><br>  
+            <small>Status: Waiting for CB2 trigger</small>  
         </div>  
         """, unsafe_allow_html=True)
     else:
@@ -227,6 +300,34 @@ if st.session_state.log_stack:
 else:
     st.info("Chưa có log nào...")
 
-# Auto refresh
+# Sidebar (tiếp theo)
+with st.sidebar:
+    st.markdown(f"""  
+    <div class="sidebar-section">  
+        <h3>👤 Người dùng</h3>  
+        <p>Xin chào, <strong>{st.session_state.get('username', 'User')}</strong></p>  
+    </div>  
+    """, unsafe_allow_html=True)
+
+    st.markdown("### 📊 Counter Statistics")
+    st.metric("Total Packages", st.session_state.package_counter)
+    st.metric("Queue Length", len(st.session_state.package_queue))
+    st.metric("Processed", st.session_state.package_counter - len(st.session_state.package_queue))
+
+    if st.session_state.package_queue:
+        st.write("**Next 3 in Queue:**")
+        for i, (pkg_id, region_code) in enumerate(list(st.session_state.package_queue)[:3]):
+            code_to_region = {1: "MN", 2: "MB", 3: "MT", 0: "Other"}
+            region_short = code_to_region.get(region_code, "Other")
+            st.write(f"{i + 1}. ID:{pkg_id} → {region_short}")
+
+    st.markdown("---")
+
+    if st.button("🔒 Đăng xuất", use_container_width=True):
+        st.session_state.logged_in = False
+        st.session_state.username = ""
+        st.switch_page("pages/login.py")
+
+    # Auto refresh
 time.sleep(0.5)
 st.rerun()

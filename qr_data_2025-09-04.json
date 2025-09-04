@@ -1,0 +1,74 @@
+[
+  {
+    "data": "DH278644, Mien Trung, Dep to ong (SP6612)",
+    "type": "QRCODE",
+    "time": "2025-09-04 21:22:59",
+    "region": "Miền Trung",
+    "package_id": 0,
+    "region_code": 3
+  },
+  {
+    "data": "DH903019, Mien Trung, Ba lo (SP3014)",
+    "type": "QRCODE",
+    "time": "2025-09-04 21:23:02",
+    "region": "Miền Trung",
+    "package_id": 0,
+    "region_code": 3
+  },
+  {
+    "data": "DH278644, Mien Trung, Dep to ong (SP6612)",
+    "type": "QRCODE",
+    "time": "2025-09-04 21:26:21",
+    "region": "Miền Trung",
+    "package_id": 0,
+    "region_code": 3
+  },
+  {
+    "data": "DH903019, Mien Trung, Ba lo (SP3014)",
+    "type": "QRCODE",
+    "time": "2025-09-04 21:26:23",
+    "region": "Miền Trung",
+    "package_id": 0,
+    "region_code": 3
+  },
+  {
+    "data": "DH452344, Mien Nam, Áo thun (SP5043)",
+    "type": "QRCODE",
+    "time": "2025-09-04 21:26:25",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH278644, Mien Trung, Dep to ong (SP6612)",
+    "type": "QRCODE",
+    "time": "2025-09-04 21:54:28",
+    "region": "Miền Trung",
+    "package_id": 0,
+    "region_code": 3
+  },
+  {
+    "data": "DH903019, Mien Trung, Ba lo (SP3014)",
+    "type": "QRCODE",
+    "time": "2025-09-04 21:54:30",
+    "region": "Miền Trung",
+    "package_id": 0,
+    "region_code": 3
+  },
+  {
+    "data": "DH452344, Mien Nam, Áo thun (SP5043)",
+    "type": "QRCODE",
+    "time": "2025-09-04 21:55:24",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH944755, Mien Bac, Binh giu nhiet (SP8720)",
+    "type": "QRCODE",
+    "time": "2025-09-04 21:55:30",
+    "region": "Miền Bắc",
+    "package_id": 0,
+    "region_code": 2
+  }
+]
