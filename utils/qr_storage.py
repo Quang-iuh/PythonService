@@ -2,6 +2,7 @@ import json
 import os
 from datetime import datetime
 
+
 def get_last_qr():
     """Lấy QR code cuối cùng"""
     data = load_qr_data()
@@ -9,14 +10,29 @@ def get_last_qr():
         return data[-1]['data']
     return ""
 
+
 def get_daily_filename(date=None):
     """Tạo filename theo ngày"""
     if date is None:
         date = datetime.now()
     return f"./qr_data_{date.strftime('%Y-%m-%d')}.json"
 
+
 def save_qr_data(qr_entry):
-    """Lưu QR data vào file theo ngày"""
+    """Lưu QR data với Package ID và Region Code"""
+    # Đảm bảo có Package ID và Region Code cho counter-based approach
+    if 'package_id' not in qr_entry:
+        qr_entry['package_id'] = 0
+    if 'region_code' not in qr_entry:
+        # Auto-generate region code từ region name nếu chưa có
+        region_mapping = {
+            "Miền Nam": 1,
+            "Miền Bắc": 2,
+            "Miền Trung": 3,
+            "Miền khác": 0
+        }
+        qr_entry['region_code'] = region_mapping.get(qr_entry.get('region', ''), 0)
+
     data_file = get_daily_filename()
 
     if os.path.exists(data_file):
@@ -60,7 +76,7 @@ def get_available_dates():
     dates = []
     for file in files:
         try:
-            date_str = file.replace('qr_data_', '').replace('.json', '')
+            date_str = file.replace('qr_data', '').replace('.json', '')
             date_obj = datetime.strptime(date_str, '%Y-%m-%d')
             dates.append(date_obj)
         except ValueError:
