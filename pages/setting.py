@@ -16,6 +16,10 @@ st.set_page_config(
 load_css("SettingStyle.css")
 
 
+class Snap7Exception:
+    pass
+
+
 class PLCManager:
     def __init__(self):
         self.client = None
