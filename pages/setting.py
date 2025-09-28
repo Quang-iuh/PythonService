@@ -225,6 +225,30 @@ class PLCManager:
             "retry_count": self.retry_count
         }
 
+    def write_db(self, db_number, start_offset, data):
+        """Ghi data vào Data Block của PLC"""
+        if not self.connected:
+            return False
+
+        try:
+            self.client.db_write(db_number, start_offset, data)
+            return True
+        except Exception as e:
+            st.error(f"Lỗi ghi DB{db_number}: {str(e)}")
+            return False
+
+    def read_db(self, db_number, start_offset, size):
+        """Đọc data từ Data Block của PLC"""
+        if not self.connected:
+            return None
+
+        try:
+            data = self.client.db_read(db_number, start_offset, size)
+            return data
+        except Exception as e:
+            st.error(f"Lỗi đọc DB{db_number}: {str(e)}")
+            return None
+
     def _float_to_registers(self, value):
         """Convert float to 2 Modbus registers (IEEE 754)"""
         import struct
