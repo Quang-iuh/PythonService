@@ -110,13 +110,13 @@ st.markdown("""
 qr_data = load_qr_data()
 
 
-def write_package_to_db10(self, package_id, region_code):
-    """Ghi package vào DB10 array với Package ID làm index"""
+def write_package_to_db14(self, package_id, region_code):
+    """Ghi package vào DB14 array với Package ID làm index"""
     if not self.connected:
         return False
 
     try:
-        # Tính offset trong DB10 array: mỗi package chiếm 4 bytes (2 cho ID, 2 cho region)
+        # Tính offset trong DB14 array: mỗi package chiếm 4 bytes (2 cho ID, 2 cho region)
         array_offset = (package_id - 1) * 4
 
         # Ghi Package ID (2 bytes) và Region Code (2 bytes)
@@ -124,10 +124,10 @@ def write_package_to_db10(self, package_id, region_code):
         package_data[0:2] = package_id.to_bytes(2, 'big')
         package_data[2:4] = region_code.to_bytes(2, 'big')
 
-        self.client.db_write(10, array_offset, package_data)
+        self.client.db_write(14, array_offset, package_data)
         return True
     except Exception as e:
-        st.error(f"Lỗi ghi DB10: {str(e)}")
+        st.error(f"Lỗi ghi DB14: {str(e)}")
         return False
 
 
@@ -190,23 +190,23 @@ def process_new_packages():
 
 
 def simulate_cb2_sensor():
-    """CB2 Sensor: PLC processing với DB10 Package Array"""
+    """CB2 Sensor: PLC processing với DB14 Package Array"""
     if st.session_state.package_queue and st.session_state.cb2_trigger_simulation:
         # CB2 Sensor triggered - Dequeue FIFO
         current_package = st.session_state.package_queue.popleft()
         package_id, region_code = current_package
         region_name = region_code_to_name(region_code)
 
-        # PLC Communication - Gửi vào DB10 Array
+        # PLC Communication - Gửi vào DB14 Array
         add_to_log_stack(f"[CB2] Package {package_id} detected at sorting position")
 
         if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-            # Ghi vào DB10 Array với Package ID làm index
-            success = st.session_state.plc_manager.write_package_to_db10(package_id, region_code)
+            # Ghi vào DB14 Array với Package ID làm index
+            success = st.session_state.plc_manager.write_package_to_db14(package_id, region_code)
             if success:
-                add_to_log_stack(f"[DB10] Package ID:{package_id}, Region:{region_code} → Array[{package_id}]")
+                add_to_log_stack(f"[DB14] Package ID:{package_id}, Region:{region_code} → Array[{package_id}]")
             else:
-                add_to_log_stack(f"[ERROR] Failed to write to DB10")
+                add_to_log_stack(f"[ERROR] Failed to write to DB14")
 
                 # Reset DB1,2,3 về 0
             st.session_state.plc_manager.write_db(1, 0, bytearray([0, 0]))
@@ -224,7 +224,7 @@ def simulate_cb2_sensor():
                 st.session_state.plc_manager.write_db(3, 0, bytearray([0, 1]))
                 add_to_log_stack(f"[PLC] DB3=1 (Miền Trung)")
         else:
-            add_to_log_stack(f"[SIMULATION] DB10[{package_id}] = ({package_id}, {region_code})")
+            add_to_log_stack(f"[SIMULATION] DB14[{package_id}] = ({package_id}, {region_code})")
 
             # Kích hoạt LED
         if region_name in st.session_state.led_status:
@@ -299,17 +299,17 @@ if st.session_state.package_queue:
 else:
     st.info("Queue rỗng - chưa có packages")
 
-# DB10 Array Status
-st.markdown("### 🗄️ DB10 Package Array Status")
+# DB14 Array Status
+st.markdown("### 🗄️ DB14 Package Array Status")
 if 'plc_manager' in st.session_state and st.session_state.plc_connected:
     col_db1, col_db2, col_db3 = st.columns(3)
 
     with col_db1:
-        st.markdown("**📊 Recent Packages in DB10:**")
+        st.markdown("**📊 Recent Packages in DB14:**")
         if st.session_state.package_counter > 0:
             # Hiển thị 5 packages gần nhất
             for i in range(max(1, st.session_state.package_counter - 4), st.session_state.package_counter + 1):
-                package_data = st.session_state.plc_manager.read_package_from_db10(i)
+                package_data = st.session_state.plc_manager.read_package_from_db14(i)
                 if package_data:
                     pkg_id, region_code = package_data
                     region_name = region_code_to_name(region_code)
@@ -317,7 +317,7 @@ if 'plc_manager' in st.session_state and st.session_state.plc_connected:
                 else:
                     st.text(f"Array[{i}]: Empty")
         else:
-            st.info("Chưa có packages trong DB10")
+            st.info("Chưa có packages trong DB14")
 
     with col_db2:
         st.markdown("**🎯 Current DB Status:**")
@@ -331,7 +331,7 @@ if 'plc_manager' in st.session_state and st.session_state.plc_connected:
         st.metric("Array Size (bytes)", st.session_state.package_counter * 4)
         st.metric("Next Array Index", st.session_state.package_counter + 1)
 else:
-    st.warning("🔴 PLC chưa kết nối - DB10 monitoring không khả dụng")
+    st.warning("🔴 PLC chưa kết nối - DB14 monitoring không khả dụng")
 
 # LED Display
 st.markdown("### 💡 Trạng thái LED/Xy lanh")

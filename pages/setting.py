@@ -89,30 +89,48 @@ class PLCManager:
             st.error(f"Lỗi đọc DB{db_number}: {str(e)}")
             return None
 
-    def read_package_from_db10(self, package_index):
-        """Đọc package data từ DB10 array theo index"""
+    def write_package_to_db14(self, package_id, region_code):
+        """Ghi package vào DB14 array với Package ID làm index"""
+        if not self.connected:
+            return False
+
+        try:
+            # Tính offset trong DB14 array: mỗi package chiếm 4 bytes (2 cho ID, 2 cho region)
+            array_offset = (package_id - 1) * 4
+
+            # Ghi Package ID (2 bytes) và Region Code (2 bytes)
+            data = bytearray(4)
+            data[0:2] = package_id.to_bytes(2, 'big')
+            data[2:4] = region_code.to_bytes(2, 'big')
+
+            self.client.db_write(14, array_offset, data)
+            return True
+
+        except Exception as e:
+            st.error(f"Lỗi ghi DB14[{package_id}]: {str(e)}")
+            return False
+
+    def read_package_from_db14(self, package_index):
+        """Đọc package từ DB14 array theo Package ID index"""
         if not self.connected:
             return None
 
         try:
-            # Tính offset trong DB10 array: mỗi package chiếm 4 bytes
-            array_offset = package_index * 4
+            # Tính offset trong DB14 array: mỗi package chiếm 4 bytes
+            array_offset = (package_index - 1) * 4
 
-            # Đọc 4 bytes từ DB10 (2 cho Package ID, 2 cho Region Code)
-            data = self.client.db_read(10, array_offset, 4)
-
-            if data and len(data) >= 4:
-                # Convert bytes to integers
-                package_id = int.from_bytes(data[0:2], byteorder='big')
-                region_code = int.from_bytes(data[2:4], byteorder='big')
+            # Đọc 4 bytes từ DB14
+            data = self.read_db(14, array_offset, 4)
+            if data:
+                # Parse Package ID (2 bytes đầu) và Region Code (2 bytes sau)
+                package_id = int.from_bytes(data[0:2], 'big')
+                region_code = int.from_bytes(data[2:4], 'big')
                 return (package_id, region_code)
-
             return None
 
         except Exception as e:
-            st.error(f"Lỗi đọc DB10[{package_index}]: {str(e)}")
+            st.error(f"Lỗi đọc DB14[{package_index}]: {str(e)}")
             return None
-
     def get_connection_status(self):
         """Kiểm tra trạng thái kết nối"""
         return {
@@ -121,7 +139,6 @@ class PLCManager:
             "rack": self.rack,
             "slot": self.slot
         }
-
     # Header chính
 
 
