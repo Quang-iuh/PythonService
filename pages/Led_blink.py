@@ -169,49 +169,45 @@ def process_new_packages():
 
 
 def simulate_cb2_sensor():
-    """CB2 Sensor: PLC processing với gửi data thực tế cho PLC"""
+    """CB2 Sensor: Gửi region code vào DB và dùng Package ID làm array index"""
     if st.session_state.package_queue and st.session_state.cb2_trigger_simulation:
         # CB2 Sensor triggered - Dequeue FIFO
         current_package = st.session_state.package_queue.popleft()
         package_id, region_code = current_package
         region_name = region_code_to_name(region_code)
 
-        # PLC Communication - Gửi data thực tế
-        if 'plc_manager' in st.session_state and st.session_state.get('plc_connected', False):
+        # PLC Communication với logic mới
+        add_to_log_stack(f"[CB2] Package {package_id} detected")
+
+        if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+            plc = st.session_state.plc_manager
+
             try:
-                plc = st.session_state.plc_manager
+                # Gửi region code vào tất cả DB1, DB2, DB3
+                # DB1 = region_code nếu là Miền Nam (1), ngược lại = 0
+                db1_value = region_code if region_code == 1 else 0
+                db2_value = region_code if region_code == 2 else 0
+                db3_value = region_code if region_code == 3 else 0
 
-                # Reset tất cả DB về 0
-                plc.write_db(1, 0, struct.pack('>I', 0))  # DB1 = 0
-                plc.write_db(2, 0, struct.pack('>I', 0))  # DB2 = 0
-                plc.write_db(3, 0, struct.pack('>I', 0))  # DB3 = 0
+                # Sử dụng Package ID làm array offset
+                array_offset = package_id - 1  # Array bắt đầu từ 0
 
-                # Gửi PackageID vào DB tương ứng với region
-                if region_code == 1:  # Miền Nam
-                    plc.write_db(1, 0, struct.pack('>I', package_id))
-                    add_to_log_stack(f"[PLC] DB1={package_id}, DB2=0, DB3=0 → {region_name}")
-                elif region_code == 2:  # Miền Bắc
-                    plc.write_db(2, 0, struct.pack('>I', package_id))
-                    add_to_log_stack(f"[PLC] DB1=0, DB2={package_id}, DB3=0 → {region_name}")
-                elif region_code == 3:  # Miền Trung
-                    plc.write_db(3, 0, struct.pack('>I', package_id))
-                    add_to_log_stack(f"[PLC] DB1=0, DB2=0, DB3={package_id} → {region_name}")
+                # Ghi vào DB array với Package ID làm index
+                plc.write_db(1, array_offset * 2, struct.pack('>H', db1_value))  # DB1[PackageID]
+                plc.write_db(2, array_offset * 2, struct.pack('>H', db2_value))  # DB2[PackageID]
+                plc.write_db(3, array_offset * 2, struct.pack('>H', db3_value))  # DB3[PackageID]
 
-                add_to_log_stack(f"[SUCCESS] Data sent to PLC for Package {package_id}")
+                add_to_log_stack(f"[PLC] Array[{package_id}]: DB1={db1_value}, DB2={db2_value}, DB3={db3_value}")
 
             except Exception as e:
-                add_to_log_stack(f"[ERROR] PLC Communication failed: {str(e)}")
-        else:
-            add_to_log_stack(f"[WARNING] PLC not connected - Simulation only")
-            add_to_log_stack(f"[PLC] Would send Package {package_id} to {region_name}")
+                add_to_log_stack(f"[PLC ERROR] {str(e)}")
 
-            # Kích hoạt LED và set timer
+                # Kích hoạt LED
         if region_name in st.session_state.led_status:
             st.session_state.led_status[region_name] = True
-            st.session_state.led_timer = time.time() + 3.0  # LED sáng trong 3s
+            st.session_state.led_timer = time.time() + 3.0
             add_to_log_stack(f"[LED ON] {region_name} sáng!")
 
-            # Reset trigger
         st.session_state.cb2_trigger_simulation = False
         st.session_state.processing_package = None
 
