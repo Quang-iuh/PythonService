@@ -1,6 +1,5 @@
 import streamlit as st
 import snap7
-from snap7.exceptions import Snap7Exception
 import struct
 import time
 import socket
@@ -29,31 +28,18 @@ class PLCManager:
         self.slot = 1
 
     def connect(self, ip, rack=0, slot=1):
-        """Kết nối đến PLC qua Snap7 S7 Protocol"""
+        """Kết nối đến PLC qua Snap7"""
         try:
-            self.ip = ip
-            self.rack = rack
-            self.slot = slot
-
-            # Test network connectivity first
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(3)
-            result = sock.connect_ex((ip, 102))  # S7 port
-            sock.close()
-
-            if result != 0:
-                return False, f"Không thể kết nối network đến {ip}:102"
-
-                # Create Snap7 client
+            # Khởi tạo Snap7 client trước khi connect
             self.client = snap7.client.Client()
+
+            # Snap7 connection code
             self.client.connect(ip, rack, slot)
-
-            # Test connection
-            cpu_info = self.client.get_cpu_info()
             self.connected = True
-
-            return True, f"Kết nối PLC thành công - CPU: {cpu_info.ModuleTypeName.decode()}"
-
+            return True, "Kết nối S7 PLC thành công"
+        except Exception as e:
+            self.connected = False
+            return False, f"Lỗi kết nối S7: {str(e)}"
         except Snap7Exception as e:
             self.connected = False
             return False, f"Lỗi Snap7: {str(e)}"
