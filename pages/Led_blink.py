@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+import struct
 from datetime import datetime
 from collections import deque
 from utils.qr_storage import load_qr_data
@@ -101,7 +102,7 @@ if 'logged_in' not in st.session_state or not st.session_state.logged_in:
 st.markdown("""  
 <div class="main-header">  
     <h1>🚦 LED CONTROLLER - COUNTER BASED</h1>  
-    <p>Phân loại dựa trên Package ID và Queue Management với PLC Integration</p>  
+    <p>Phân loại dựa trên Package ID và Queue Management với PLC Snap7</p>  
 </div>  
 """, unsafe_allow_html=True)
 
@@ -150,7 +151,7 @@ def process_new_packages():
         new_qrs = qr_data[-new_qr_count:]
 
         for new_qr in new_qrs:
-            # Counter: Đếm package
+            # CB1 Sensor: Đếm package
             st.session_state.package_counter += 1
             package_id = st.session_state.package_counter
 
@@ -162,23 +163,7 @@ def process_new_packages():
             package_address = (package_id, region_code)
             st.session_state.package_queue.append(package_address)
 
-            add_to_log_stack(f"[CAMERA] Package ID:{package_id}, Region:{region} (Code:{region_code})")
-
-            # PLC Integration: Gửi counter và region code vào DB array
-            if 'plc_manager' in st.session_state and st.session_state.get('plc_connected', False):
-                try:
-                    plc = st.session_state.plc_manager
-                    # Gửi vào DB array: DB1[package_id] = region_code
-                    db_data = bytearray(4)  # 4 bytes: PackageID (2 bytes) + RegionCode (2 bytes)
-                    db_data[0:2] = package_id.to_bytes(2, 'big')
-                    db_data[2:4] = region_code.to_bytes(2, 'big')
-
-                    # Write vào DB1 tại offset tương ứng với package_id
-                    offset = (package_id - 1) * 4  # Mỗi package chiếm 4 bytes
-                    plc.db_write(1, offset, db_data)
-                    add_to_log_stack(f"[PLC] DB1[{offset}] = PackageID:{package_id}, RegionCode:{region_code}")
-                except Exception as e:
-                    add_to_log_stack(f"[PLC ERROR] {str(e)}")
+            add_to_log_stack(f"[CB1+CAMERA] Package ID:{package_id}, Region:{region} (Code:{region_code})")
 
         st.session_state.last_qr_count = len(qr_data)
 
@@ -191,42 +176,39 @@ def simulate_cb2_sensor():
         package_id, region_code = current_package
         region_name = region_code_to_name(region_code)
 
-        # Lưu package đang xử lý
-        st.session_state.processing_package = current_package
-
         # PLC Communication - Gửi data thực tế
-        if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-            plc = st.session_state.plc_manager
-
+        if 'plc_manager' in st.session_state and st.session_state.get('plc_connected', False):
             try:
-                # Reset tất cả DB về 0 trước
-                plc.write_db(1, 0, bytearray([0]))  # DB1 = 0
-                plc.write_db(2, 0, bytearray([0]))  # DB2 = 0
-                plc.write_db(3, 0, bytearray([0]))  # DB3 = 0
+                plc = st.session_state.plc_manager
 
-                # Gửi package counter vào DB tương ứng với region
+                # Reset tất cả DB về 0
+                plc.write_db(1, 0, struct.pack('>I', 0))  # DB1 = 0
+                plc.write_db(2, 0, struct.pack('>I', 0))  # DB2 = 0
+                plc.write_db(3, 0, struct.pack('>I', 0))  # DB3 = 0
+
+                # Gửi PackageID vào DB tương ứng với region
                 if region_code == 1:  # Miền Nam
-                    plc.write_db(1, 0, bytearray([package_id]))
-                    add_to_log_stack(f"[PLC] Gửi Package {package_id} vào DB1 (Miền Nam)")
+                    plc.write_db(1, 0, struct.pack('>I', package_id))
+                    add_to_log_stack(f"[PLC] DB1={package_id}, DB2=0, DB3=0 → {region_name}")
                 elif region_code == 2:  # Miền Bắc
-                    plc.write_db(2, 0, bytearray([package_id]))
-                    add_to_log_stack(f"[PLC] Gửi Package {package_id} vào DB2 (Miền Bắc)")
+                    plc.write_db(2, 0, struct.pack('>I', package_id))
+                    add_to_log_stack(f"[PLC] DB1=0, DB2={package_id}, DB3=0 → {region_name}")
                 elif region_code == 3:  # Miền Trung
-                    plc.write_db(3, 0, bytearray([package_id]))
-                    add_to_log_stack(f"[PLC] Gửi Package {package_id} vào DB3 (Miền Trung)")
+                    plc.write_db(3, 0, struct.pack('>I', package_id))
+                    add_to_log_stack(f"[PLC] DB1=0, DB2=0, DB3={package_id} → {region_name}")
 
-                add_to_log_stack(f"[CB2] Package {package_id} detected at sorting position")
-                add_to_log_stack(f"[PLC SUCCESS] Data sent to {region_name}")
+                add_to_log_stack(f"[SUCCESS] Data sent to PLC for Package {package_id}")
 
             except Exception as e:
-                add_to_log_stack(f"[PLC ERROR] Không thể gửi data: {str(e)}")
+                add_to_log_stack(f"[ERROR] PLC Communication failed: {str(e)}")
         else:
-            add_to_log_stack(f"[PLC WARNING] PLC chưa kết nối - chỉ simulation")
+            add_to_log_stack(f"[WARNING] PLC not connected - Simulation only")
+            add_to_log_stack(f"[PLC] Would send Package {package_id} to {region_name}")
 
             # Kích hoạt LED và set timer
         if region_name in st.session_state.led_status:
             st.session_state.led_status[region_name] = True
-            st.session_state.led_timer = time.time() + 3.0
+            st.session_state.led_timer = time.time() + 3.0  # LED sáng trong 3s
             add_to_log_stack(f"[LED ON] {region_name} sáng!")
 
             # Reset trigger
@@ -236,15 +218,16 @@ def simulate_cb2_sensor():
 
 def check_led_timer():
     """Kiểm tra và tắt LED sau thời gian quy định"""
-    if st.session_state.led_timer and time.time() >= st.session_state.led_timer:
-        # Tắt tất cả LED
-        for region in st.session_state.led_status:
-            if st.session_state.led_status[region]:
-                st.session_state.led_status[region] = False
-                add_to_log_stack(f"[LED OFF] {region} deactivated")
-        st.session_state.led_timer = None
+    if hasattr(st.session_state, 'led_timer') and st.session_state.led_timer:
+        if time.time() >= st.session_state.led_timer:
+            # Tắt tất cả LED
+            for region in st.session_state.led_status:
+                if st.session_state.led_status[region]:
+                    st.session_state.led_status[region] = False
+                    add_to_log_stack(f"[LED OFF] {region} tắt")
+            st.session_state.led_timer = None
 
-    # Xử lý packages mới
+        # Xử lý packages mới
 
 
 process_new_packages()
@@ -269,9 +252,9 @@ with col_control2:
 with col_control3:
     if st.session_state.processing_package:
         pkg_id, region_code = st.session_state.processing_package
-        st.metric("Last Processed", f"ID:{pkg_id}")
+        st.metric("Processing", f"ID:{pkg_id}")
     else:
-        st.metric("Last Processed", "None")
+        st.metric("Processing", "None")
 
 with col_control4:
     if st.button("🔄 Simulate CB2 Trigger", disabled=len(st.session_state.package_queue) == 0):
@@ -282,6 +265,7 @@ with col_control4:
 st.markdown("### 📊 Package Queue (FIFO)")
 if st.session_state.package_queue:
     queue_data = []
+
     for i, (pkg_id, region_code) in enumerate(st.session_state.package_queue):
         queue_data.append({
             "Position": i + 1,
@@ -290,6 +274,7 @@ if st.session_state.package_queue:
             "Region": region_code_to_name(region_code),
             "Status": "Waiting for CB2"
         })
+
     st.dataframe(queue_data, use_container_width=True)
 else:
     st.info("Queue rỗng - chưa có packages")
