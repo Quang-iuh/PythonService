@@ -89,6 +89,30 @@ class PLCManager:
             st.error(f"Lỗi đọc DB{db_number}: {str(e)}")
             return None
 
+    def read_package_from_db10(self, package_index):
+        """Đọc package data từ DB10 array theo index"""
+        if not self.connected:
+            return None
+
+        try:
+            # Tính offset trong DB10 array: mỗi package chiếm 4 bytes
+            array_offset = package_index * 4
+
+            # Đọc 4 bytes từ DB10 (2 cho Package ID, 2 cho Region Code)
+            data = self.client.db_read(10, array_offset, 4)
+
+            if data and len(data) >= 4:
+                # Convert bytes to integers
+                package_id = int.from_bytes(data[0:2], byteorder='big')
+                region_code = int.from_bytes(data[2:4], byteorder='big')
+                return (package_id, region_code)
+
+            return None
+
+        except Exception as e:
+            st.error(f"Lỗi đọc DB10[{package_index}]: {str(e)}")
+            return None
+
     def get_connection_status(self):
         """Kiểm tra trạng thái kết nối"""
         return {

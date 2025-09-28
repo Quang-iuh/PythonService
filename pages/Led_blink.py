@@ -131,25 +131,6 @@ def write_package_to_db10(self, package_id, region_code):
         return False
 
 
-def read_package_from_db10(self, package_id):
-    """Đọc package từ DB10 array"""
-    if not self.connected:
-        return None
-
-    try:
-        array_offset = (package_id - 1) * 4
-        data = self.client.db_read(10, array_offset, 4)
-
-        if data:
-            pkg_id = int.from_bytes(data[0:2], 'big')
-            region_code = int.from_bytes(data[2:4], 'big')
-            return (pkg_id, region_code)
-        return None
-
-    except Exception as e:
-        st.error(f"Lỗi đọc DB10: {str(e)}")
-        return None
-
 # Functions
 def add_to_log_stack(message):
     """Thêm log vào stack"""
