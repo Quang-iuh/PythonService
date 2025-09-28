@@ -1,0 +1,43 @@
+[
+
+  {
+    "data": "DH452344, Mien Nam, Áo thun (SP5043)",
+    "type": "QRCODE",
+    "time": "2025-09-28 21:07:01",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH903019, Mien Trung, Ba lo (SP3014)",
+    "type": "QRCODE",
+    "time": "2025-09-28 21:08:15",
+    "region": "Miền Trung",
+    "package_id": 0,
+    "region_code": 3
+  },
+  {
+    "data": "DH452344, Mien Nam, Áo thun (SP5043)",
+    "type": "QRCODE",
+    "time": "2025-09-28 21:09:28",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH903019, Mien Trung, Ba lo (SP3014)",
+    "type": "QRCODE",
+    "time": "2025-09-28 21:09:36",
+    "region": "Miền Trung",
+    "package_id": 0,
+    "region_code": 3
+  },
+  {
+    "data": "DH452344, Mien Nam, Áo thun (SP5043)",
+    "type": "QRCODE",
+    "time": "2025-09-28 21:25:27",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  }
+]
