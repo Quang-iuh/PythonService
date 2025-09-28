@@ -168,30 +168,29 @@ def process_new_packages():
 
 
 def simulate_cb2_sensor():
-    """CB2 Sensor: PLC processing với LED blink được cải thiện"""
+    """CB2 Sensor: PLC processing với gửi data vào DB1,2,3"""
     if st.session_state.package_queue and st.session_state.cb2_trigger_simulation:
         # CB2 Sensor triggered - Dequeue FIFO
         current_package = st.session_state.package_queue.popleft()
         package_id, region_code = current_package
         region_name = region_code_to_name(region_code)
 
-        # Lưu package đang xử lý
-        st.session_state.processing_package = current_package
+        # PLC Communication - Gửi vào DB1,2,3
+        if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+            plc = st.session_state.plc_manager
 
-        # PLC Communication
-        add_to_log_stack(f"[CB2] Package {package_id} detected at sorting position")
-        add_to_log_stack(f"[PLC] DB1={package_id}, DB2={region_code} → Send to {region_name}")
+            # Reset tất cả DB về 0
+            plc.write_db(1, 0, [0])  # DB1 = 0
+            plc.write_db(2, 0, [0])  # DB2 = 0
+            plc.write_db(3, 0, [0])  # DB3 = 0
 
-        # Kích hoạt LED và set timer
-        if region_name in st.session_state.led_status:
-            st.session_state.led_status[region_name] = True
-            st.session_state.led_timer = time.time() + 1.0  # LED sáng trong 3s
-            add_to_log_stack(f"[LED ON] {region_name} sáng!")
-
-            # Reset trigger ngay lập tức để tránh loop
-        st.session_state.cb2_trigger_simulation = False
-        st.session_state.processing_package = None
-
+            # Gửi 1 vào DB tương ứng với region
+            if region_code == 1:  # Miền Nam
+                plc.write_db(1, 0, [1])  # DB1 = 1
+            elif region_code == 2:  # Miền Bắc
+                plc.write_db(2, 0, [2])  # DB2 = 1
+            elif region_code == 3:  # Miền Trung
+                plc.write_db(3, 0, [3])  # DB3 = 1
 
 def check_led_timer():
     """Kiểm tra và tắt LED sau thời gian quy định"""
