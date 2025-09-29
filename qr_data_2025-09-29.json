@@ -1,0 +1,18 @@
+[
+  {
+    "data": "DH452344, Mien Nam, Áo thun (SP5043)",
+    "type": "QRCODE",
+    "time": "2025-09-29 09:11:02",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH944755, Mien Bac, Binh giu nhiet (SP8720)",
+    "type": "QRCODE",
+    "time": "2025-09-29 09:11:11",
+    "region": "Miền Bắc",
+    "package_id": 0,
+    "region_code": 2
+  }
+]
