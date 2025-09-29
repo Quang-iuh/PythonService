@@ -90,30 +90,19 @@ class PLCManager:
             return None
 
     def write_db4_status(self, status_value):
-        """Ghi trạng thái CB2 vào DB4 (1=kích lên, 0=kích xuống)"""
+        """Ghi trạng thái CB2 vào DB4"""
         if not self.connected:
             return False
 
         try:
-            # Ghi giá trị signed integer vào DB4
-            return self.write_db(4, 0, status_value)
+            # Đảm bảo data format đúng cho Sint
+            data = struct.pack('>h', int(status_value))  # Signed 16-bit
+            self.client.db_write(4, 0, data)
+            return True
         except Exception as e:
             st.error(f"Lỗi ghi DB4: {str(e)}")
             return False
 
-    def read_db4_status(self):
-        """Đọc trạng thái CB2 từ DB4"""
-        if not self.connected:
-            return None
-
-        try:
-            data = self.client.db_read(4, 0, 2)
-            if data and len(data) >= 2:
-                return int.from_bytes(data[1:2], byteorder='big')
-            return None
-        except Exception as e:
-            st.error(f"Lỗi đọc DB4: {str(e)}")
-            return None
 
     def get_connection_status(self):
         """Kiểm tra trạng thái kết nối"""

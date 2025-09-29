@@ -168,76 +168,57 @@ def process_new_packages():
         st.session_state.last_qr_count = len(qr_data)
 
 
-def simulate_cb2_sensor():
-    """CB2 Sensor: PLC processing với DB4 control và region classification"""
-    if st.session_state.package_queue and st.session_state.cb2_trigger_simulation:
-        # CB2 Sensor triggered - Dequeue FIFO
-        current_package = st.session_state.package_queue.popleft()
-        package_id, region_code = current_package
-        region_name = region_code_to_name(region_code)
+def process_cb2_sensor():
+    """CB2 Sensor: Đọc DB4 từ PLC để detect CB2 trigger"""
 
-        # Log CB2 detection
-        add_to_log_stack(f"[CB2] Package {package_id} detected at sorting position")
+    # Kiểm tra kết nối PLC
+    if 'plc_manager' not in st.session_state or not st.session_state.plc_connected:
+        return
 
-        # PLC Communication - Ghi DB4 = 1 (CB2 kích lên)
-        if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-            try:
-                # Ghi DB4 = 1 khi CB2 kích lên
-                success_db4 = st.session_state.plc_manager.write_db(4, 0, bytearray([0, 1]))
-                if success_db4:
-                    add_to_log_stack(f"[DB4] CB2 kích lên = 1")
-                else:
-                    add_to_log_stack(f"[ERROR] Failed to write DB4 = 1")
+        # Đọc giá trị DB4 để check CB2 trigger
+    try:
+        db4_data = st.session_state.plc_manager.read_db(4, 0, 2)
+        if db4_data and len(db4_data) >= 2:
+            # Convert bytes to integer (signed 16-bit)
+            db4_value = int.from_bytes(db4_data, byteorder='big', signed=True)
 
-                    # Reset tất cả DB1,2,3 về 0 trước
-                st.session_state.plc_manager.write_db(1, 0, bytearray([0, 0]))
-                st.session_state.plc_manager.write_db(2, 0, bytearray([0, 0]))
-                st.session_state.plc_manager.write_db(3, 0, bytearray([0, 0]))
-                add_to_log_stack(f"[PLC] Reset DB1,2,3 = 0")
+            # Nếu DB4 = 1, CB2 đã được trigger
+            if db4_value == 1 and st.session_state.package_queue:
+                # CB2 Sensor triggered - Dequeue FIFO
+                current_package = st.session_state.package_queue.popleft()
+                package_id, region_code = current_package
+                region_name = region_code_to_name(region_code)
+
+                add_to_log_stack(f"[CB2] Package {package_id} detected at sorting position (DB4=1)")
+
+                # Reset DB1,2,3 về 0 trước
+                st.session_state.plc_manager.write_db(1, 0, 0)
+                st.session_state.plc_manager.write_db(2, 0, 0)
+                st.session_state.plc_manager.write_db(3, 0, 0)
 
                 # Gửi region code vào DB tương ứng
                 if region_code == 1:  # Miền Nam
-                    st.session_state.plc_manager.write_db(1, 0, bytearray([0, region_code]))
-                    add_to_log_stack(f"[PLC] DB1 = {region_code} (Miền Nam)")
+                    st.session_state.plc_manager.write_db(1, 0, 1)
+                    add_to_log_stack(f"[PLC] DB1=1 (Miền Nam)")
                 elif region_code == 2:  # Miền Bắc
-                    st.session_state.plc_manager.write_db(2, 0, bytearray([0, region_code]))
-                    add_to_log_stack(f"[PLC] DB2 = {region_code} (Miền Bắc)")
+                    st.session_state.plc_manager.write_db(2, 0, 1)
+                    add_to_log_stack(f"[PLC] DB2=1 (Miền Bắc)")
                 elif region_code == 3:  # Miền Trung
-                    st.session_state.plc_manager.write_db(3, 0, bytearray([0, region_code]))
-                    add_to_log_stack(f"[PLC] DB3 = {region_code} (Miền Trung)")
-                else:  # Miền khác
-                    add_to_log_stack(f"[PLC] Unknown region code: {region_code}")
+                    st.session_state.plc_manager.write_db(3, 0, 1)
+                    add_to_log_stack(f"[PLC] DB3=1 (Miền Trung)")
 
-                    # Sau khi xử lý xong, ghi DB4 = 0 (CB2 kích xuống)
-                time.sleep(0.1)  # Delay ngắn để PLC xử lý
-                success_db4_reset = st.session_state.plc_manager.write_db(4, 0, bytearray([0, 0]))
-                if success_db4_reset:
-                    add_to_log_stack(f"[DB4] CB2 kích xuống = 0")
-                else:
-                    add_to_log_stack(f"[ERROR] Failed to reset DB4 = 0")
+                    # Kích hoạt LED
+                if region_name in st.session_state.led_status:
+                    st.session_state.led_status[region_name] = True
+                    st.session_state.led_timer = time.time() + 3.0
+                    add_to_log_stack(f"[LED ON] {region_name} sáng!")
 
-            except Exception as e:
-                add_to_log_stack(f"[ERROR] PLC communication failed: {str(e)}")
-        else:
-            # Simulation mode khi PLC chưa kết nối
-            add_to_log_stack(f"[SIMULATION] Package {package_id} → {region_name} (Code: {region_code})")
-            add_to_log_stack(f"[SIMULATION] DB4 = 1 → 0, DB{region_code} = {region_code}")
+                    # Reset DB4 về 0 sau khi xử lý xong
+                st.session_state.plc_manager.write_db(4, 0, 0)
+                add_to_log_stack(f"[DB4] Reset DB4=0 after processing")
 
-            # Kích hoạt LED tương ứng
-        if region_name in st.session_state.led_status:
-            st.session_state.led_status[region_name] = True
-            st.session_state.led_timer = time.time() + 3.0  # LED sáng 3 giây
-            add_to_log_stack(f"[LED ON] {region_name} sáng 3 giây!")
-
-            # Update processing status
-        st.session_state.processing_package = (package_id, region_code)
-        add_to_log_stack(f"[PROCESSING] Package {package_id} đang được phân loại")
-
-        # Reset CB2 trigger simulation
-        st.session_state.cb2_trigger_simulation = False
-
-        # Log completion
-        add_to_log_stack(f"[COMPLETE] Package {package_id} processed successfully")
+    except Exception as e:
+        add_to_log_stack(f"[ERROR] Lỗi đọc DB4: {str(e)}")
 
 def check_led_timer():
     """Kiểm tra và tắt LED sau thời gian quy định"""
@@ -256,7 +237,7 @@ def check_led_timer():
 process_new_packages()
 
 # Xử lý CB2 sensors
-simulate_cb2_sensor()
+process_cb2_sensor()
 
 # Kiểm tra LED timer
 check_led_timer()
