@@ -249,7 +249,6 @@ def check_led_timer():
 
         # Xử lý packages mới
 
-
 process_new_packages()
 
 # Xử lý CB2 sensors

@@ -36,7 +36,7 @@ class PLCManager:
             # Snap7 connection code
             self.client.connect(ip, rack, slot)
             self.connected = True
-            return True, "Kết nối S7 PLC thành công"
+            return True, "Kết nối PLC S7 thành công"
         except Exception as e:
             self.connected = False
             return False, f"Lỗi kết nối S7: {str(e)}"
@@ -263,13 +263,13 @@ with col2:
         st.success("🟢 PLC đã kết nối (Snap7 S7 Protocol)")
 
         # Test DB Write
-        if st.button("🧪 Test ghi DB14"):
+        if st.button("Test Connection"):
             if 'plc_manager' in st.session_state:
-                success = st.session_state.plc_manager.write_db(14, 0, 1)
+                success = st.session_state.plc_manager.write_db(14, 0, 2)
                 if success:
-                    st.success("✅ Ghi DB14 thành công!")
+                    st.success("✅ Connection successful!")
                 else:
-                    st.error("❌ Lỗi ghi DB14")
+                    st.error("❌Error to connect")
     else:
         st.error("🔴 PLC chưa kết nối")
 
