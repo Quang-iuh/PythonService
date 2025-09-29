@@ -56,6 +56,18 @@ class PLCManager:
             except:
                 pass
 
+    def read_db(self, db_number, start_offset, size):
+        """Đọc data từ Data Block của PLC"""
+        if not self.connected:
+            return None
+
+        try:
+            data = self.client.db_read(db_number, start_offset, size)
+            return data
+        except Exception as e:
+            st.error(f"Lỗi đọc DB{db_number}: {str(e)}")
+            return None
+
     def write_db(self, db_number, start_offset, data):
         """Ghi data vào Data Block của PLC"""
         if not self.connected:
@@ -275,6 +287,15 @@ with col2:
                     st.success("✅ Ghi DB1 thành công!")
                 else:
                     st.error("❌ Lỗi ghi DB1")
+
+        if st.button("🧪 Test đọc DB4"):
+            if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+                data = st.session_state.plc_manager.read_db(4, 0, 1)
+                if data:
+                    value = int.from_bytes(data, byteorder='big', signed=True)
+                    st.success(f"DB4[0] = {value}")
+                else:
+                    st.error("Không đọc được DB4")
     else:
         st.error("🔴 PLC chưa kết nối")
 
