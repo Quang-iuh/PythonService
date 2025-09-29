@@ -92,6 +92,12 @@ if 'processing_package' not in st.session_state:
     st.session_state.processing_package = None
 if 'led_timer' not in st.session_state:
     st.session_state.led_timer = None
+    if 'db_array_positions' not in st.session_state:
+        st.session_state.db_array_positions = {
+            1: 0,  # DB1 position counter (Miền Nam)
+            2: 0,  # DB2 position counter (Miền Bắc)
+            3: 0  # DB3 position counter (Miền Trung)
+        }
 # Kiểm tra đăng nhập
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
@@ -169,39 +175,31 @@ def process_new_packages():
 
 def process_cb2_sensor():
     """CB2 Sensor: Đọc DB14[0] từ PLC array"""
-
     # Kiểm tra kết nối PLC
     if 'plc_manager' not in st.session_state or not st.session_state.plc_connected:
         return
-
         # Kiểm tra có package trong queue không
     if not st.session_state.package_queue:
         return
-
     try:
         # Đọc DB14[0] - array index 0, offset 0, size 2 bytes cho int
         db14_data = st.session_state.plc_manager.read_db(14, 0, 2)
-
         if db14_data and len(db14_data) >= 2:
             # Convert 2 bytes thành integer (big-endian)
             db14_value = int.from_bytes(db14_data[0:2], byteorder='big')
-
             # Nếu DB14[0] = 1, xử lý package
             if db14_value == 1:
                 # Dequeue package từ FIFO
                 current_package = st.session_state.package_queue.popleft()
                 package_id, region_code = current_package
                 region_name = region_code_to_name(region_code)
-
                 add_to_log_stack(f"[CB2] DB14[0]=1 detected, processing Package {package_id}")
-
                 # Gửi region code vào DB1,2,3
                 if 'plc_manager' in st.session_state and st.session_state.plc_connected:
                     # Reset tất cả DB về 0
                     st.session_state.plc_manager.write_db(1, 0, 0)
                     st.session_state.plc_manager.write_db(2, 0, 0)
                     st.session_state.plc_manager.write_db(3, 0, 0)
-
                     # Gửi region code vào DB tương ứng
                     if region_code == 1:  # Miền Nam
                         st.session_state.plc_manager.write_db(1, 0, region_code)
