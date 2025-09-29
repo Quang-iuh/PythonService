@@ -92,7 +92,7 @@ if 'processing_package' not in st.session_state:
     st.session_state.processing_package = None
 if 'led_timer' not in st.session_state:
     st.session_state.led_timer = None
-    if 'db_array_positions' not in st.session_state:
+if 'db_array_positions' not in st.session_state:
         st.session_state.db_array_positions = {
             1: 0,  # DB1 position counter (Miền Nam)
             2: 0,  # DB2 position counter (Miền Bắc)
@@ -125,7 +125,6 @@ def add_to_log_stack(message):
     if len(st.session_state.log_stack) > 20:
         st.session_state.log_stack.pop(0)
 
-
 def classify_qr_to_region_code(region):
     """Convert region name to region code"""
     region_mapping = {
@@ -136,7 +135,6 @@ def classify_qr_to_region_code(region):
     }
     return region_mapping.get(region, 0)
 
-
 def region_code_to_name(code):
     """Convert region code to name"""
     code_mapping = {
@@ -146,7 +144,6 @@ def region_code_to_name(code):
         0: "Miền khác"
     }
     return code_mapping.get(code, "Miền khác")
-
 
 def process_new_packages():
     """CB1 Sensor + Camera: Xử lý packages mới"""
@@ -171,7 +168,6 @@ def process_new_packages():
             add_to_log_stack(f"[CB1+CAMERA] Package ID:{package_id}, Region:{region} (Code:{region_code})")
 
         st.session_state.last_qr_count = len(qr_data)
-
 
 def process_cb2_sensor():
     """CB2 Sensor: Đọc DB14[0] từ PLC array"""
