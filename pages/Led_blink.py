@@ -169,29 +169,34 @@ def process_new_packages():
 
 
 def process_cb2_sensor():
-    """CB2 Sensor: Đọc DB4 từ PLC để detect CB2 trigger"""
+    """CB2 Sensor: Chỉ đọc DB4[0], nếu = 1 thì truyền dữ liệu"""
 
     # Kiểm tra kết nối PLC
     if 'plc_manager' not in st.session_state or not st.session_state.plc_connected:
         return
 
-        # Đọc giá trị DB4 để check CB2 trigger
-    try:
-        db4_data = st.session_state.plc_manager.read_db(4, 0, 2)
-        if db4_data and len(db4_data) >= 2:
-            # Convert bytes to integer (signed 16-bit)
-            db4_value = int.from_bytes(db4_data, byteorder='big', signed=True)
+        # Kiểm tra có package trong queue không
+    if not st.session_state.package_queue:
+        return
 
-            # Nếu DB4 = 1, CB2 đã được trigger
-            if db4_value == 1 and st.session_state.package_queue:
-                # CB2 Sensor triggered - Dequeue FIFO
+    try:
+        # Đọc DB4[0] - array 0 of 1 int
+        db4_data = st.session_state.plc_manager.read_db(4, 0, 2)  # Đọc 2 bytes cho int
+
+        if db4_data and len(db4_data) >= 2:
+            # Convert bytes to int (big-endian)
+            db4_value = int.from_bytes(db4_data[0:2], byteorder='big')
+
+            # Chỉ xử lý khi DB4[0] = 1
+            if db4_value == 1:
+                # Dequeue package đầu tiên
                 current_package = st.session_state.package_queue.popleft()
                 package_id, region_code = current_package
                 region_name = region_code_to_name(region_code)
 
-                add_to_log_stack(f"[CB2] Package {package_id} detected at sorting position (DB4=1)")
+                add_to_log_stack(f"[CB2] DB4[0]=1 detected, processing Package {package_id}")
 
-                # Reset DB1,2,3 về 0 trước
+                # Reset DB1,2,3 về 0
                 st.session_state.plc_manager.write_db(1, 0, 0)
                 st.session_state.plc_manager.write_db(2, 0, 0)
                 st.session_state.plc_manager.write_db(3, 0, 0)
@@ -213,9 +218,7 @@ def process_cb2_sensor():
                     st.session_state.led_timer = time.time() + 3.0
                     add_to_log_stack(f"[LED ON] {region_name} sáng!")
 
-                    # Reset DB4 về 0 sau khi xử lý xong
-                st.session_state.plc_manager.write_db(4, 0, 0)
-                add_to_log_stack(f"[DB4] Reset DB4=0 after processing")
+                add_to_log_stack(f"[COMPLETED] Package {package_id} processed successfully")
 
     except Exception as e:
         add_to_log_stack(f"[ERROR] Lỗi đọc DB4: {str(e)}")

@@ -77,32 +77,22 @@ class PLCManager:
             st.error(f"Lỗi ghi DB{db_number}: {str(e)}")
             return False
 
-    def read_db(self, db_number, start_offset, size):
-        """Đọc data từ Data Block của PLC"""
+    def read_db4_status(self):
+        """Đọc trạng thái CB2 từ DB4[0] (array 0 of 1 int)"""
         if not self.connected:
             return None
 
         try:
-            data = self.client.db_read(db_number, start_offset, size)
-            return data
-        except Exception as e:
-            st.error(f"Lỗi đọc DB{db_number}: {str(e)}")
+            # Đọc 2 bytes từ DB4 array index [0]
+            data = self.client.db_read(4, 0, 1)
+            if data and len(data) >= 2:
+                # Convert bytes to signed integer
+                value = struct.unpack('>h', data)[0]
+                return value
             return None
-
-    def write_db4_status(self, status_value):
-        """Ghi trạng thái CB2 vào DB4"""
-        if not self.connected:
-            return False
-
-        try:
-            # Đảm bảo data format đúng cho Sint
-            data = struct.pack('>h', int(status_value))  # Signed 16-bit
-            self.client.db_write(4, 0, data)
-            return True
         except Exception as e:
-            st.error(f"Lỗi ghi DB4: {str(e)}")
-            return False
-
+            st.error(f"Lỗi đọc DB4[0]: {str(e)}")
+            return None
 
     def get_connection_status(self):
         """Kiểm tra trạng thái kết nối"""
