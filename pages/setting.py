@@ -89,21 +89,31 @@ class PLCManager:
             st.error(f"Lỗi đọc DB{db_number}: {str(e)}")
             return None
 
-    def read_cb2_sensor(self, input_byte=0, input_bit=2):
-        """Đọc tín hiệu CB2 sensor từ I0.2"""
+    def write_db4_status(self, status_value):
+        """Ghi trạng thái CB2 vào DB4 (1=kích lên, 0=kích xuống)"""
         if not self.connected:
             return False
 
         try:
-            # Sử dụng area constant trực tiếp: 0x81 = PE (Process Input)
-            data = self.client.read_area(0x81, 0, input_byte, 1)
-            if data and len(data) > 0:
-                # Kiểm tra bit thứ 2 trong byte
-                return bool(data[0] & (1 << input_bit))
-            return False
+            # Ghi giá trị signed integer vào DB4
+            return self.write_db(4, 0, status_value)
         except Exception as e:
-            st.error(f"Lỗi đọc CB2 I0.{input_bit}: {str(e)}")
+            st.error(f"Lỗi ghi DB4: {str(e)}")
             return False
+
+    def read_db4_status(self):
+        """Đọc trạng thái CB2 từ DB4"""
+        if not self.connected:
+            return None
+
+        try:
+            data = self.client.db_read(4, 0, 2)
+            if data and len(data) >= 2:
+                return int.from_bytes(data[1:2], byteorder='big')
+            return None
+        except Exception as e:
+            st.error(f"Lỗi đọc DB4: {str(e)}")
+            return None
 
     def get_connection_status(self):
         """Kiểm tra trạng thái kết nối"""
