@@ -169,7 +169,7 @@ def process_new_packages():
 
 
 def process_cb2_sensor():
-    """CB2 Sensor: Chỉ đọc DB4[0], nếu = 1 thì truyền dữ liệu"""
+    """CB2 Sensor: Đọc DB4[0] từ PLC array"""
 
     # Kiểm tra kết nối PLC
     if 'plc_manager' not in st.session_state or not st.session_state.plc_connected:
@@ -180,48 +180,48 @@ def process_cb2_sensor():
         return
 
     try:
-        # Đọc DB4[0] - array 0 of 1 int
-        db4_data = st.session_state.plc_manager.read_db(4, 0, 2)  # Đọc 2 bytes cho int
+        # Đọc DB4[0] - array index 0, offset 0, size 2 bytes cho int
+        db4_data = st.session_state.plc_manager.read_db(4, 0, 2)
 
         if db4_data and len(db4_data) >= 2:
-            # Convert bytes to int (big-endian)
+            # Convert 2 bytes thành integer (big-endian)
             db4_value = int.from_bytes(db4_data[0:2], byteorder='big')
 
-            # Chỉ xử lý khi DB4[0] = 1
+            # Nếu DB4[0] = 1, xử lý package
             if db4_value == 1:
-                # Dequeue package đầu tiên
+                # Dequeue package từ FIFO
                 current_package = st.session_state.package_queue.popleft()
                 package_id, region_code = current_package
                 region_name = region_code_to_name(region_code)
 
                 add_to_log_stack(f"[CB2] DB4[0]=1 detected, processing Package {package_id}")
 
-                # Reset DB1,2,3 về 0
-                st.session_state.plc_manager.write_db(1, 0, 0)
-                st.session_state.plc_manager.write_db(2, 0, 0)
-                st.session_state.plc_manager.write_db(3, 0, 0)
+                # Gửi region code vào DB1,2,3
+                if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+                    # Reset tất cả DB về 0
+                    st.session_state.plc_manager.write_db(1, 0, 0)
+                    st.session_state.plc_manager.write_db(2, 0, 0)
+                    st.session_state.plc_manager.write_db(3, 0, 0)
 
-                # Gửi region code vào DB tương ứng
-                if region_code == 1:  # Miền Nam
-                    st.session_state.plc_manager.write_db(1, 0, 1)
-                    add_to_log_stack(f"[PLC] DB1=1 (Miền Nam)")
-                elif region_code == 2:  # Miền Bắc
-                    st.session_state.plc_manager.write_db(2, 0, 1)
-                    add_to_log_stack(f"[PLC] DB2=1 (Miền Bắc)")
-                elif region_code == 3:  # Miền Trung
-                    st.session_state.plc_manager.write_db(3, 0, 1)
-                    add_to_log_stack(f"[PLC] DB3=1 (Miền Trung)")
+                    # Gửi region code vào DB tương ứng
+                    if region_code == 1:  # Miền Nam
+                        st.session_state.plc_manager.write_db(1, 0, region_code)
+                        add_to_log_stack(f"[PLC] DB1={region_code} (Miền Nam)")
+                    elif region_code == 2:  # Miền Bắc
+                        st.session_state.plc_manager.write_db(2, 0, region_code)
+                        add_to_log_stack(f"[PLC] DB2={region_code} (Miền Bắc)")
+                    elif region_code == 3:  # Miền Trung
+                        st.session_state.plc_manager.write_db(3, 0, region_code)
+                        add_to_log_stack(f"[PLC] DB3={region_code} (Miền Trung)")
 
-                    # Kích hoạt LED
+                        # Kích hoạt LED
                 if region_name in st.session_state.led_status:
                     st.session_state.led_status[region_name] = True
                     st.session_state.led_timer = time.time() + 3.0
-                    add_to_log_stack(f"[LED ON] {region_name} sáng!")
-
-                add_to_log_stack(f"[COMPLETED] Package {package_id} processed successfully")
+                    add_to_log_stack(f"[LED ON] {region_name} activated")
 
     except Exception as e:
-        add_to_log_stack(f"[ERROR] Lỗi đọc DB4: {str(e)}")
+        add_to_log_stack(f"[ERROR] Lỗi đọc DB4[0]: {str(e)}")
 
 def check_led_timer():
     """Kiểm tra và tắt LED sau thời gian quy định"""

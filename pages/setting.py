@@ -89,23 +89,6 @@ class PLCManager:
             st.error(f"Lỗi ghi DB{db_number}: {str(e)}")
             return False
 
-    def read_db4_status(self):
-        """Đọc trạng thái CB2 từ DB4[0] (array 0 of 1 int)"""
-        if not self.connected:
-            return None
-
-        try:
-            # Đọc 2 bytes từ DB4 array index [0]
-            data = self.client.db_read(4, 0, 1)
-            if data and len(data) >= 2:
-                # Convert bytes to signed integer
-                value = struct.unpack('>h', data)[0]
-                return value
-            return None
-        except Exception as e:
-            st.error(f"Lỗi đọc DB4[0]: {str(e)}")
-            return None
-
     def get_connection_status(self):
         """Kiểm tra trạng thái kết nối"""
         return {
@@ -280,22 +263,13 @@ with col2:
         st.success("🟢 PLC đã kết nối (Snap7 S7 Protocol)")
 
         # Test DB Write
-        if st.button("🧪 Test ghi DB1"):
+        if st.button("🧪 Test ghi DB14"):
             if 'plc_manager' in st.session_state:
-                success = st.session_state.plc_manager.write_db(1, 0, 123)
+                success = st.session_state.plc_manager.write_db(4, 1, 123)
                 if success:
-                    st.success("✅ Ghi DB1 thành công!")
+                    st.success("✅ Ghi DB14 thành công!")
                 else:
-                    st.error("❌ Lỗi ghi DB1")
-
-        if st.button("🧪 Test đọc DB4"):
-            if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-                data = st.session_state.plc_manager.read_db(4, 0, 1)
-                if data:
-                    value = int.from_bytes(data, byteorder='big', signed=True)
-                    st.success(f"DB4[0] = {value}")
-                else:
-                    st.error("Không đọc được DB4")
+                    st.error("❌ Lỗi ghi DB14")
     else:
         st.error("🔴 PLC chưa kết nối")
 
