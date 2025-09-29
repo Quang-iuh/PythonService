@@ -92,7 +92,6 @@ if 'processing_package' not in st.session_state:
     st.session_state.processing_package = None
 if 'led_timer' not in st.session_state:
     st.session_state.led_timer = None
-
 # Kiểm tra đăng nhập
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
@@ -205,13 +204,13 @@ def process_cb2_sensor():
 
                     # Gửi region code vào DB tương ứng
                     if region_code == 1:  # Miền Nam
-                        st.session_state.plc_manager.write_db(1, st.session_state.package_counter, region_code)
+                        st.session_state.plc_manager.write_db(1, 0, region_code)
                         add_to_log_stack(f"[PLC] DB1={region_code} (Miền Nam)")
                     elif region_code == 2:  # Miền Bắc
-                        st.session_state.plc_manager.write_db(2, st.session_state.package_counter, region_code)
+                        st.session_state.plc_manager.write_db(2, 0, region_code)
                         add_to_log_stack(f"[PLC] DB2={region_code} (Miền Bắc)")
                     elif region_code == 3:  # Miền Trung
-                        st.session_state.plc_manager.write_db(3, st.session_state.package_counter, region_code)
+                        st.session_state.plc_manager.write_db(3, 0, region_code)
                         add_to_log_stack(f"[PLC] DB3={region_code} (Miền Trung)")
 
                         # Kích hoạt LED
