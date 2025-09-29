@@ -255,7 +255,7 @@ def check_led_timer():
 
 process_new_packages()
 
-# Xử lý CB2 sensor
+# Xử lý CB2 sensors
 simulate_cb2_sensor()
 
 # Kiểm tra LED timer
