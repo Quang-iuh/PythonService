@@ -169,7 +169,7 @@ def process_new_packages():
 
 
 def process_cb2_sensor():
-    """CB2 Sensor: Đọc DB4[0] từ PLC array"""
+    """CB2 Sensor: Đọc DB14[0] từ PLC array"""
 
     # Kiểm tra kết nối PLC
     if 'plc_manager' not in st.session_state or not st.session_state.plc_connected:
@@ -180,21 +180,21 @@ def process_cb2_sensor():
         return
 
     try:
-        # Đọc DB4[0] - array index 0, offset 0, size 2 bytes cho int
-        db4_data = st.session_state.plc_manager.read_db(4, 0, 2)
+        # Đọc DB14[0] - array index 0, offset 0, size 2 bytes cho int
+        db14_data = st.session_state.plc_manager.read_db(14, 0, 2)
 
-        if db4_data and len(db4_data) >= 2:
+        if db14_data and len(db14_data) >= 2:
             # Convert 2 bytes thành integer (big-endian)
-            db4_value = int.from_bytes(db4_data[0:2], byteorder='big')
+            db14_value = int.from_bytes(db14_data[0:2], byteorder='big')
 
-            # Nếu DB4[0] = 1, xử lý package
-            if db4_value == 1:
+            # Nếu DB14[0] = 1, xử lý package
+            if db14_value == 1:
                 # Dequeue package từ FIFO
                 current_package = st.session_state.package_queue.popleft()
                 package_id, region_code = current_package
                 region_name = region_code_to_name(region_code)
 
-                add_to_log_stack(f"[CB2] DB4[0]=1 detected, processing Package {package_id}")
+                add_to_log_stack(f"[CB2] DB14[0]=1 detected, processing Package {package_id}")
 
                 # Gửi region code vào DB1,2,3
                 if 'plc_manager' in st.session_state and st.session_state.plc_connected:
@@ -221,7 +221,7 @@ def process_cb2_sensor():
                     add_to_log_stack(f"[LED ON] {region_name} activated")
 
     except Exception as e:
-        add_to_log_stack(f"[ERROR] Lỗi đọc DB4[0]: {str(e)}")
+        add_to_log_stack(f"[ERROR] Lỗi đọc DB14[0]: {str(e)}")
 
 def check_led_timer():
     """Kiểm tra và tắt LED sau thời gian quy định"""

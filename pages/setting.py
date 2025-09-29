@@ -265,7 +265,7 @@ with col2:
         # Test DB Write
         if st.button("🧪 Test ghi DB14"):
             if 'plc_manager' in st.session_state:
-                success = st.session_state.plc_manager.write_db(4, 1, 123)
+                success = st.session_state.plc_manager.write_db(14, 0, 1)
                 if success:
                     st.success("✅ Ghi DB14 thành công!")
                 else:
