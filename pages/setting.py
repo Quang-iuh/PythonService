@@ -89,6 +89,22 @@ class PLCManager:
             st.error(f"Lỗi đọc DB{db_number}: {str(e)}")
             return None
 
+    def read_cb2_sensor(self, input_byte=0, input_bit=2):
+        """Đọc tín hiệu CB2 sensor từ I0.2"""
+        if not self.connected:
+            return False
+
+        try:
+            # Sử dụng area constant trực tiếp: 0x81 = PE (Process Input)
+            data = self.client.read_area(0x81, 0, input_byte, 1)
+            if data and len(data) > 0:
+                # Kiểm tra bit thứ 2 trong byte
+                return bool(data[0] & (1 << input_bit))
+            return False
+        except Exception as e:
+            st.error(f"Lỗi đọc CB2 I0.{input_bit}: {str(e)}")
+            return False
+
     def get_connection_status(self):
         """Kiểm tra trạng thái kết nối"""
         return {

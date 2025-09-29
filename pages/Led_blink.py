@@ -168,48 +168,43 @@ def process_new_packages():
         st.session_state.last_qr_count = len(qr_data)
 
 
-def simulate_cb2_sensor():
-    """CB2 Sensor: Gửi region code vào DB và dùng Package ID làm array index"""
-    if st.session_state.package_queue and st.session_state.cb2_trigger_simulation:
-        # CB2 Sensor triggered - Dequeue FIFO
-        current_package = st.session_state.package_queue.popleft()
-        package_id, region_code = current_package
-        region_name = region_code_to_name(region_code)
-
-        # PLC Communication với logic mới
-        add_to_log_stack(f"[CB2] Package {package_id} detected")
-
+def process_cb2_sensor():
+    """CB2 Sensor: Đọc tín hiệu thật từ PLC và xử lý package"""
+    if st.session_state.package_queue:
+        # Đọc tín hiệu CB2 từ PLC
+        cb2_triggered = False
         if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-            plc = st.session_state.plc_manager
+            cb2_triggered = st.session_state.plc_manager.read_cb2_sensor(0)  # Address 0
 
-            try:
-                # Gửi region code vào tất cả DB1, DB2, DB3
-                # DB1 = region_code nếu là Miền Nam (1), ngược lại = 0
-                db1_value = region_code if region_code == 1 else 0
-                db2_value = region_code if region_code == 2 else 0
-                db3_value = region_code if region_code == 3 else 0
+        if cb2_triggered:
+            # CB2 Sensor triggered - Dequeue FIFO
+            current_package = st.session_state.package_queue.popleft()
+            package_id, region_code = current_package
+            region_name = region_code_to_name(region_code)
 
-                # Sử dụng Package ID làm array offset
-                array_offset = package_id - 1  # Array bắt đầu từ 0
+            add_to_log_stack(f"[CB2] Package {package_id} detected at sorting position")
 
-                # Ghi vào DB array với Package ID làm index
-                plc.write_db(1, array_offset * 2, struct.pack('>H', db1_value))  # DB1[PackageID]
-                plc.write_db(2, array_offset * 2, struct.pack('>H', db2_value))  # DB2[PackageID]
-                plc.write_db(3, array_offset * 2, struct.pack('>H', db3_value))  # DB3[PackageID]
+            # Reset DB1,2,3 về 0
+            st.session_state.plc_manager.write_db(1, 0, 0)
+            st.session_state.plc_manager.write_db(2, 0, 0)
+            st.session_state.plc_manager.write_db(3, 0, 0)
 
-                add_to_log_stack(f"[PLC] Array[{package_id}]: DB1={db1_value}, DB2={db2_value}, DB3={db3_value}")
-
-            except Exception as e:
-                add_to_log_stack(f"[PLC ERROR] {str(e)}")
+            # Gửi region code vào DB tương ứng
+            if region_code == 1:  # Miền Nam
+                st.session_state.plc_manager.write_db(1, 0, 1)
+                add_to_log_stack(f"[PLC] DB1=1 (Miền Nam)")
+            elif region_code == 2:  # Miền Bắc
+                st.session_state.plc_manager.write_db(2, 0, 1)
+                add_to_log_stack(f"[PLC] DB2=1 (Miền Bắc)")
+            elif region_code == 3:  # Miền Trung
+                st.session_state.plc_manager.write_db(3, 0, 1)
+                add_to_log_stack(f"[PLC] DB3=1 (Miền Trung)")
 
                 # Kích hoạt LED
-        if region_name in st.session_state.led_status:
-            st.session_state.led_status[region_name] = True
-            st.session_state.led_timer = time.time() + 3.0
-            add_to_log_stack(f"[LED ON] {region_name} sáng!")
-
-        st.session_state.cb2_trigger_simulation = False
-
+            if region_name in st.session_state.led_status:
+                st.session_state.led_status[region_name] = True
+                st.session_state.led_timer = time.time() + 3.0
+                add_to_log_stack(f"[LED ON] {region_name} sáng!")
 
 def check_led_timer():
     """Kiểm tra và tắt LED sau thời gian quy định"""
@@ -228,7 +223,7 @@ def check_led_timer():
 process_new_packages()
 
 # Xử lý CB2 sensor
-simulate_cb2_sensor()
+process_cb2_sensor()
 
 # Kiểm tra LED timer
 check_led_timer()
