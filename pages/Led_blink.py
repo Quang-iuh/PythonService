@@ -86,18 +86,12 @@ if 'log_stack' not in st.session_state:
     st.session_state.log_stack = []
 if 'last_qr_count' not in st.session_state:
     st.session_state.last_qr_count = 0
-if 'cb2_trigger_simulation' not in st.session_state:
-    st.session_state.cb2_trigger_simulation = False
 if 'processing_package' not in st.session_state:
     st.session_state.processing_package = None
 if 'led_timer' not in st.session_state:
     st.session_state.led_timer = None
-if 'db_array_positions' not in st.session_state:
-        st.session_state.db_array_positions = {
-            1: 0,  # DB1 position counter (Miền Nam)
-            2: 0,  # DB2 position counter (Miền Bắc)
-            3: 0  # DB3 position counter (Miền Trung)
-        }
+if 'db_array_position' not in st.session_state:
+    st.session_state.db_array_position = 1
 # Kiểm tra đăng nhập
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
@@ -170,44 +164,70 @@ def process_new_packages():
         st.session_state.last_qr_count = len(qr_data)
 
 def process_cb2_sensor():
-    """CB2 Sensor: Đọc DB14[0] từ PLC array"""
+    """CB2 Sensor: Sequential array storage cho DB1,2,3"""
+
     # Kiểm tra kết nối PLC
     if 'plc_manager' not in st.session_state or not st.session_state.plc_connected:
         return
+
         # Kiểm tra có package trong queue không
     if not st.session_state.package_queue:
         return
+
     try:
-        # Đọc DB14[0] - array index 0, offset 0, size 2 bytes cho int
+        # Đọc DB14[0] để detect CB2 trigger
         db14_data = st.session_state.plc_manager.read_db(14, 0, 2)
+
         if db14_data and len(db14_data) >= 2:
-            # Convert 2 bytes thành integer (big-endian)
             db14_value = int.from_bytes(db14_data[0:2], byteorder='big')
+
             # Nếu DB14[0] = 1, xử lý package
             if db14_value == 1:
                 # Dequeue package từ FIFO
                 current_package = st.session_state.package_queue.popleft()
                 package_id, region_code = current_package
                 region_name = region_code_to_name(region_code)
-                add_to_log_stack(f"[CB2] DB14[0]=1 detected, processing Package {package_id}")
-                # Gửi region code vào DB1,2,3
-                if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-                    # Reset tất cả DB về 0
-                    st.session_state.plc_manager.write_db(1, 0, 0)
-                    st.session_state.plc_manager.write_db(2, 0, 0)
-                    st.session_state.plc_manager.write_db(3, 0, 0)
-                    # Gửi region code vào DB tương ứng
-                    if region_code == 1:  # Miền Nam
-                        st.session_state.plc_manager.write_db(1, 0, region_code)
-                        add_to_log_stack(f"[PLC] DB1={region_code} (Miền Nam)")
-                    elif region_code == 2:  # Miền Bắc
-                        st.session_state.plc_manager.write_db(2, 0, region_code)
-                        add_to_log_stack(f"[PLC] DB2={region_code} (Miền Bắc)")
-                    elif region_code == 3:  # Miền Trung
-                        st.session_state.plc_manager.write_db(3, 0, region_code)
-                        add_to_log_stack(f"[PLC] DB3={region_code} (Miền Trung)")
 
-                        # Kích hoạt LED
+                # Lấy vị trí hiện tại trong array
+                current_position = st.session_state.db_array_position
+
+                # Tính offset cho vị trí array (mỗi int = 2 bytes)
+                array_offset = current_position * 2
+
+                add_to_log_stack(f"[CB2] Processing Package {package_id} at position [{current_position}]")
+
+                # Ghi vào DB arrays tại vị trí tuần tự
+                if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+                    if region_code == 1:  # Miền Nam
+                        st.session_state.plc_manager.write_db(1, array_offset, 1)
+                        st.session_state.plc_manager.write_db(2, array_offset, 0)
+                        st.session_state.plc_manager.write_db(3, array_offset, 0)
+                        add_to_log_stack(
+                            f"[PLC] DB1[{current_position}]=1, DB2[{current_position}]=0, DB3[{current_position}]=0")
+
+                    elif region_code == 2:  # Miền Bắc
+                        st.session_state.plc_manager.write_db(1, array_offset, 0)
+                        st.session_state.plc_manager.write_db(2, array_offset, 2)
+                        st.session_state.plc_manager.write_db(3, array_offset, 0)
+                        add_to_log_stack(
+                            f"[PLC] DB1[{current_position}]=0, DB2[{current_position}]=2, DB3[{current_position}]=0")
+
+                    elif region_code == 3:  # Miền Trung
+                        st.session_state.plc_manager.write_db(1, array_offset, 0)
+                        st.session_state.plc_manager.write_db(2, array_offset, 0)
+                        st.session_state.plc_manager.write_db(3, array_offset, 3)
+                        add_to_log_stack(
+                            f"[PLC] DB1[{current_position}]=0, DB2[{current_position}]=0, DB3[{current_position}]=3")
+
+                        # Tăng array position cho lần tiếp theo
+                st.session_state.db_array_position += 1
+
+                # Reset về 0 nếu vượt quá 100
+                if st.session_state.db_array_position > 100:
+                    st.session_state.db_array_position = 0
+                    add_to_log_stack("[ARRAY] Reset position to 0")
+
+                    # Kích hoạt LED
                 if region_name in st.session_state.led_status:
                     st.session_state.led_status[region_name] = True
                     st.session_state.led_timer = time.time() + 3.0
@@ -255,11 +275,6 @@ with col_control3:
         st.metric("Processing", f"ID:{pkg_id}")
     else:
         st.metric("Processing", "None")
-
-with col_control4:
-    if st.button("🔄 Simulate CB2 Trigger", disabled=len(st.session_state.package_queue) == 0):
-        st.session_state.cb2_trigger_simulation = True
-        st.rerun()
 
     # Queue Display
 st.markdown("### 📊 Package Queue (FIFO)")
@@ -369,8 +384,5 @@ with st.sidebar:
         st.session_state.logged_in = False
         st.session_state.username = ""
         st.switch_page("pages/login.py")
-
-    # Auto refresh - chỉ khi không có CB2 trigger simulation
-if not st.session_state.cb2_trigger_simulation:
     time.sleep(0.5)
     st.rerun()
