@@ -66,7 +66,7 @@ st.markdown('<div class="login-container">', unsafe_allow_html=True)
 st.markdown("""  
 <div class="login-header">  
     <h1>🔐 ĐĂNG NHẬP</h1>  
-    <p>Hệ thống QR Scanner & LED Controller</p>  
+    <p>Hệ thống quét QR </p>  
 </div>  
 """, unsafe_allow_html=True)
 

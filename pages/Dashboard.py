@@ -25,28 +25,30 @@ if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.stop()
 
 # Date Filter
-st.markdown("""    
+nav_col1, nav_col2= st.columns(2)
+with nav_col1:
+    st.markdown("""    
 <div class="date-filter">    
     <h3>📅 Chọn ngày xem data</h3>    
 </div>    
 """, unsafe_allow_html=True)
 
-available_dates = get_available_dates()
-
-if available_dates:
-    selected_date = st.selectbox(
+    available_dates = get_available_dates()
+with nav_col2:
+    if available_dates:
+        selected_date = st.selectbox(
         "Chọn ngày:",
         options=available_dates,
         format_func=lambda x: x.strftime("%Y-%m-%d (%A)"),
         index=0
     )
-
     # Load data theo ngày được chọn
-    qr_history = load_qr_data(selected_date)
-    st.info(f"📊 Hiển thị data ngày {selected_date.strftime('%Y-%m-%d')}: {len(qr_history)} QR codes")
-else:
-    st.warning("Chưa có data nào")
-    qr_history = []
+
+        qr_history = load_qr_data(selected_date)
+        st.info(f"📊 Hiển thị data ngày {selected_date.strftime('%Y-%m-%d')}: {len(qr_history)} QR codes")
+    else:
+        st.warning("Chưa có data nào")
+        qr_history = []
 
 # Tính toán thống kê
 total_scans = len(qr_history)
@@ -69,40 +71,40 @@ st.markdown('<div class="metric-label">', unsafe_allow_html=True)
 with col1:
     st.markdown(f"""        
     <div class="metric-card">        
-        <div class="metric-value">{total_scans}</div>        
         <div class="metric-label">Tổng số quét</div>        
+        <div class="metric-value">{total_scans}</div>    
     </div>        
     """, unsafe_allow_html=True)
 
 with col2:
     st.markdown(f"""        
-    <div class="metric-card">        
-        <div class="metric-value">{unique_scans}</div>        
-        <div class="metric-label">Mã duy nhất</div>        
+    <div class="metric-card">              
+        <div class="metric-label">Mã duy nhất</div>
+        <div class="metric-value">{unique_scans}</div>          
     </div>        
     """, unsafe_allow_html=True)
 
 with col3:
     st.markdown(f"""        
-    <div class="metric-card">        
-        <div class="metric-value">{len(unique_north)}</div>        
-        <div class="metric-label">Miền Bắc</div>        
+    <div class="metric-card">            
+        <div class="metric-label">Miền Bắc </div>      
+        <div class="metric-value">{len(unique_north)}</div>      
     </div>        
     """, unsafe_allow_html=True)
 
 with col4:
     st.markdown(f"""        
-    <div class="metric-card">        
-        <div class="metric-value">{len(unique_central)}</div>        
-        <div class="metric-label">Miền Trung</div>        
+    <div class="metric-card">           
+        <div class="metric-label">Miền Trung</div>       
+        <div class="metric-value">{len(unique_central)}</div>      
     </div>        
     """, unsafe_allow_html=True)
 
 with col5:
     st.markdown(f"""        
-    <div class="metric-card">        
+    <div class="metric-card">             
+        <div class="metric-label">Miền Nam</div>   
         <div class="metric-value">{len(unique_south)}</div>        
-        <div class="metric-label">Miền Nam</div>        
     </div>        
     """, unsafe_allow_html=True)
 st.markdown('<div class="chart-container">', unsafe_allow_html=True)
@@ -176,9 +178,9 @@ if qr_history:
         # Download button
         csv = filtered_df.to_csv(index=False, encoding='utf-8-sig')
         st.download_button(
-            label="📥 Tải xuống CSV",
+            label="📥 Tải xuống",
             data=csv,
-            file_name=f"qr_data_{selected_date.strftime('%Y%m%d')}.csv",
+            file_name=f"Dữ_liệu_đơn_hàng_{selected_date.strftime('%Y%m%d')}.csv",
             mime="text/csv"
         )
     else:

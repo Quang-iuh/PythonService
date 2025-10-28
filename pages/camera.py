@@ -26,7 +26,7 @@ st.set_page_config(
 
 # Load CSS và render header
 load_css("CameraStyle.css")
-render_main_header("🔬 HỆ THỐNG QUÉT MÃ QR", "Công nghệ nhận diện và phân loại tự động")
+render_main_header("🔬 HỆ THỐNG QUÉT MÃ QR", "Nhận diện và phân loại tự động")
 
 # Check authentication
 if not check_login():
@@ -188,7 +188,7 @@ with col1:
                 "video": {
                     "width": {"ideal": 320},
                     "height": {"ideal": 240},
-                    "frameRate": {"ideal": 10, "max": 15}
+                    "frameRate": {"ideal": 30}
                 },
                 "audio": False
             },

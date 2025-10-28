@@ -8,7 +8,7 @@ from Component.Camera.CameraHeader import load_css
 
 # Cấu hình trang
 st.set_page_config(
-    page_title="🚦 LED Controller - Counter Based",
+    page_title="PLC",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -100,8 +100,7 @@ if 'logged_in' not in st.session_state or not st.session_state.logged_in:
 # Header
 st.markdown("""  
 <div class="main-header">  
-    <h1>🚦 LED CONTROLLER - COUNTER BASED</h1>  
-    <p>Phân loại dựa trên Package ID và Queue Management với PLC Snap7</p>  
+    <h1>📡 TRUYỀN TÍN HIỆU CHO PLC</h1>    
 </div>  
 """, unsafe_allow_html=True)
 
@@ -258,15 +257,15 @@ process_cb2_sensor()
 check_led_timer()
 
 # Control Panel
-st.markdown("## 🎛️ Control Panel")
+st.markdown("<h2 style='text-align: center;'>🎛️ Bộ đếm</h2>", unsafe_allow_html=True)
 
-col_control1, col_control2, col_control3, col_control4 = st.columns(4)
+col_control1, col_control2, col_control3 = st.columns(3)
 
 with col_control1:
-    st.metric("Package Counter", st.session_state.package_counter)
+    st.metric("Gói hàng cần đếm", st.session_state.package_counter)
 
 with col_control2:
-    st.metric("Queue Size", len(st.session_state.package_queue))
+    st.metric("Số lượng hàng cần đếm", len(st.session_state.package_queue))
 
 with col_control3:
     if st.session_state.processing_package:
@@ -276,7 +275,7 @@ with col_control3:
         st.metric("Processing", "None")
 
     # Queue Display
-st.markdown("### 📊 Package Queue (FIFO)")
+st.markdown("<h2 style='text-align: center;'> 📊 Gói hàng chờ</2>", unsafe_allow_html=True)
 if st.session_state.package_queue:
     queue_data = []
 
@@ -294,7 +293,7 @@ else:
     st.info("Queue rỗng - chưa có packages")
 
 # LED Display
-st.markdown("### 💡 Trạng thái LED/Xy lanh")
+st.markdown("### 💡 Trạng thái gói hàng được truyền")
 
 col1, col2, col3 = st.columns(3)
 regions = ["Miền Bắc", "Miền Trung", "Miền Nam"]
@@ -331,7 +330,7 @@ with col_info1:
         st.error("🔴 PLC Disconnected")
 
 with col_info2:
-    st.markdown("### 📋 Next Package in Queue")
+    st.markdown("### 📋 Gói hàng tiếp theo")
     if st.session_state.package_queue:
         next_package = st.session_state.package_queue[0]
         pkg_id, region_code = next_package
@@ -348,7 +347,7 @@ with col_info2:
         st.info("Không có package trong queue")
 
     # Log Stack
-st.markdown("### 📜 Log History (Real-time)")
+st.markdown("### 📜 Lịch sử đơn hàng ")
 if st.session_state.log_stack:
     recent_logs = st.session_state.log_stack[-10:]
     for log in reversed(recent_logs):

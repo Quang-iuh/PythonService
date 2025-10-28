@@ -72,9 +72,7 @@ if 'logged_in' not in st.session_state or not st.session_state.logged_in:
 # Header chính
 st.markdown("""  
 <div class="main-header">  
-    <h1>🏠 HỆ THỐNG QR SCANNER</h1>  
-    <p>Giải pháp phân loại tự động thông minh</p>  
-    <small>Chào mừng <strong>{}</strong> đến với hệ thống</small>  
+    <h1>🏠 HỆ THỐNG XỬ LÝ ẢNH</h1>   
 </div>  
 """.format(st.session_state.get('username', 'User')), unsafe_allow_html=True)
 
@@ -90,59 +88,62 @@ if 'qr_history' in st.session_state:
     </div>  
     """, unsafe_allow_html=True)
 
-# Chức năng chính - Layout 3 cột
-col1, col2, col3 = st.columns(3, gap="large")
+# Chức năng chính - Layout 4 cột
+col1, col2, col3, col4 = st.columns(4, gap="large")
 
 with col1:
     st.markdown("""  
     <div class="feature-card">  
         <div class="feature-icon">📸</div>  
-        <h3>Camera Scanner</h3>  
-        <p>Quét QR real-time với AI classification</p>  
+        <h4>Camera Scanner</h4>  
+        <p>Quét QR </p>  
     </div>  
     """, unsafe_allow_html=True)
 
-    if st.button("🎯 Mở Camera", use_container_width=True, type="primary"):
-        st.switch_page("pages/camera.py")
+with col3:
+    st.markdown("""    
+    <div class="feature-card">    
+        <div class="feature-icon">🔌</div>    
+        <h4>PLC Controller</h4>    
+        <p>Truyền dữ liệu cho PLC</p>    
+    </div>    
+    """, unsafe_allow_html=True)
 
 with col2:
     st.markdown("""  
     <div class="feature-card">  
-        <div class="feature-icon">🚦</div>  
-        <h3>LED Controller</h3>  
-        <p>Điều khiển đèn LED 3 khu vực</p>  
-    </div>  
-    """, unsafe_allow_html=True)
-
-    if st.button("💡 LED Control", use_container_width=True):
-        st.switch_page("pages/Led_blink.py")
-
-with col3:
-    st.markdown("""  
-    <div class="feature-card">  
         <div class="feature-icon">📊</div>  
-        <h3>Dashboard</h3>  
+        <h4>THỐNG KÊ</h4>  
         <p>Thống kê và báo cáo chi tiết</p>  
     </div>  
     """, unsafe_allow_html=True)
 
-    if st.button("📈 Xem Dashboard", use_container_width=True):
+with col4:
+    st.markdown("""  
+    <div class="feature-card">  
+        <div class="feature-icon">⚙️</div>  
+        <h4>SETTING</h4>  
+        <p>Cài đặt thông số hệ thống</p>  
+    </div>  
+    """, unsafe_allow_html=True)
+
+bu_col1, bu_col2, bu_col3, bu_col4 = st.columns(4)
+with bu_col1:
+     if st.button("🎯 Mở Camera", use_container_width=True, type="primary"):
+         st.switch_page("pages/camera.py")
+with bu_col2:
+    if st.button("📈 Xem thống kê", use_container_width=True, type="primary"):
         st.switch_page("pages/Dashboard.py")
-
+with bu_col3:
+    if st.button("🔌 PLC", use_container_width=True, type="primary"):
+        st.switch_page("pages/PLC.py")
+with bu_col4:
+    if st.button("⚙️ Setting", use_container_width=True, type="primary"):
+        st.switch_page("pages/Setting.py")
     # Quick Navigation
-st.markdown("""  
-<div class="quick-nav">  
-    <h4>🔗 Truy cập nhanh</h4>  
-</div>  
-""", unsafe_allow_html=True)
-
-nav_col1, nav_col2, nav_col3 = st.columns(3)
+nav_col1, nav_col2= st.columns(2)
 
 with nav_col1:
-    if st.button("⚙️ Cài đặt", use_container_width=True):
-        st.switch_page("pages/setting.py")
-
-with nav_col2:
     if st.button("📋 Hướng dẫn", use_container_width=True):
         with st.expander("📖 Hướng dẫn sử dụng", expanded=True):
             st.markdown("""  
@@ -150,12 +151,12 @@ with nav_col2:
             1. Click "Mở Camera" → Cấp quyền camera  
             2. Đưa QR vào khung hình → Tự động phân loại  
 
-            **🚦 LED Controller:**  
-            1. Monitor LED 3 khu vực real-time  
+            **🚦 PLC Control:**  
+            1. Monitor LED 3 khu vực phân loại  
             2. Xem timing và delay của từng miền  
             """)
 
-with nav_col3:
+with nav_col2:
     if st.button("🔒 Đăng xuất", use_container_width=True, type="secondary"):
         st.session_state.logged_in = False
         st.session_state.username = ""
