@@ -364,7 +364,11 @@ with st.sidebar:
     </div>  
     """, unsafe_allow_html=True)
 
-    st.markdown("### 📊 Counter Statistics")
+    st.markdown("""        
+    <div class="sidebar-section">        
+        <h3>📊 Thống kê nhanh</h3>        
+    </div>        
+    """, unsafe_allow_html=True)
     st.metric("Total Packages", st.session_state.package_counter)
     st.metric("Queue Length", len(st.session_state.package_queue))
     st.metric("Processed", st.session_state.package_counter - len(st.session_state.package_queue))

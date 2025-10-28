@@ -12,7 +12,64 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-load_css("SettingStyle.css")
+# Load CSS
+load_css("Led_BlinkStyle.css")
+st.markdown("""  
+<style>  
+.main-header {  
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);  
+    padding: 1.5rem;  
+    border-radius: 10px;  
+    color: white;  
+    text-align: center;  
+    margin-bottom: 2rem;  
+}  
+.led-container {  
+    display: flex;  
+    justify-content: center;  
+    align-items: center;  
+    margin: 20px 0;  
+}  
+.led-circle {  
+    width: 80px;  
+    height: 80px;  
+    border-radius: 50%;  
+    border: 3px solid #333;  
+    margin: 0 20px;  
+    display: flex;  
+    align-items: center;  
+    justify-content: center;  
+    font-weight: bold;  
+    color: white;  
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);  
+}  
+.led-off { background-color: #666; }  
+.led-red { background-color: #ff4444; box-shadow: 0 0 20px #ff4444; }  
+.led-yellow { background-color: #ffdd44; box-shadow: 0 0 20px #ffdd44; }  
+.led-green { background-color: #44ff44; box-shadow: 0 0 20px #44ff44; }  
+.region-info {  
+    text-align: center;  
+    margin-top: 10px;  
+    font-size: 14px;  
+    color: #666;  
+}  
+.active-timer {  
+    background: #fff3e0;  
+    padding: 8px;  
+    margin: 3px 0;  
+    border-radius: 3px;  
+    border-left: 3px solid #ff9800;  
+}  
+.sidebar-section {  
+    background: #f8f9fa;  
+    padding: 1rem;  
+    border-radius: 8px;  
+    margin: 1rem 0;  
+    border-left: 4px solid #667eea;  
+}  
+</style>  
+""", unsafe_allow_html=True)
+
 
 
 class Snap7Exception:
@@ -288,34 +345,12 @@ if st.button("🔄 Reset về mặc định", use_container_width=True):
 
 # Sidebar
 with st.sidebar:
-    st.markdown(f"""          
-    <div class="sidebar-section">          
-        <h3>👤 Người dùng</h3>          
-        <p>Xin chào, <strong>{st.session_state.get('username', 'User')}</strong></p>          
-    </div>          
+    st.markdown(f"""  
+    <div class="sidebar-section">  
+        <h3>👤 Người dùng</h3>  
+        <p>Xin chào, <strong>{st.session_state.get('username', 'User')}</strong></p>  
+    </div>  
     """, unsafe_allow_html=True)
-
-    st.markdown("""          
-    <div class="sidebar-section">          
-        <h3>📊 Thống kê nhanh</h3>          
-    </div>          
-    """, unsafe_allow_html=True)
-
-    if qr_history:
-        st.metric("Tổng quét", total_scans)
-        st.metric("Mã duy nhất", unique_scans)
-
-        if total_scans > 0:
-            north_pct = round(len(unique_north) / unique_scans * 100, 1) if unique_scans > 0 else 0
-            central_pct = round(len(unique_central) / unique_scans * 100, 1) if unique_scans > 0 else 0
-            south_pct = round(len(unique_south) / unique_scans * 100, 1) if unique_scans > 0 else 0
-
-            st.write("**Tỷ lệ theo miền:**")
-            st.write(f"🔵 Miền Bắc: {north_pct}%")
-            st.write(f"🟡 Miền Trung: {central_pct}%")
-            st.write(f"🔴 Miền Nam: {south_pct}%")
-
-    st.markdown("---")
 
     if st.button("🔒 Đăng xuất", use_container_width=True):
         st.session_state.logged_in = False

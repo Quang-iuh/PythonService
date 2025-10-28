@@ -170,7 +170,7 @@ last_qr = get_last_qr()
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    st.markdown("### 📹 Camera Scanner")
+    st.markdown("<h2 style='text-align: center;'> 📹 Camera Scanner</2>", unsafe_allow_html=True)
 
     # Logic với 3 options
     camera_mode = st.radio(
