@@ -186,7 +186,7 @@ if qr_history:
 
         if not df_chart.empty:
             fig_pie = px.pie(df_chart, values='Số lượng', names='Miền',
-                             color_discrete_sequence=['#667eea', '#764ba2', '#f093fb', '#f5576c'])
+                             color_discrete_sequence=['#7fffd4', '#deb887', '#5f9ea0', '#a52a2a'])
             fig_pie.update_layout(height=400)
             st.plotly_chart(fig_pie, use_container_width=True)
 
@@ -201,7 +201,7 @@ if qr_history:
         if not df_chart.empty:
             fig_bar = px.bar(df_chart, x='Miền', y='Số lượng',
                              color='Miền',
-                             color_discrete_sequence=['#667eea', '#764ba2', '#f093fb', '#f5576c'])
+                             color_discrete_sequence=['#7fffd4', '#deb887', '#5f9ea0', '#a52a2a'])
             fig_bar.update_layout(height=400, showlegend=False)
             st.plotly_chart(fig_bar, use_container_width=True)
 
