@@ -206,16 +206,6 @@ with col1:
         help="Chuyển đổi hình ảnh sang màu xám"
     )
 
-    st.markdown("**🔍 Điều chỉnh độ phóng đại**")
-    st.session_state.zoom_level = st.slider(
-        "Mức phóng đại camera:",
-        min_value=1.0,
-        max_value=3.0,
-        value=st.session_state.zoom_level,
-        step=0.1,
-        help="1.0 = Zoom mặc định, giá trị lớn hơn sẽ phóng to hình ảnh"
-    )
-
     st.markdown("**📐 Độ phân giải**")
     resolution_options = {
         "640x480 (SD)": (640, 480),
@@ -237,27 +227,10 @@ with col1:
     st.session_state.resolution = resolution_options[selected_res]
 
 with col2:
-    # Cài đặt Động cơ
-    st.markdown("""      
-    <div class="setting-card">      
-        <h3 class="setting-title">⚡ Cài đặt Động cơ</h3>      
-    </div>      
-    """, unsafe_allow_html=True)
-
-    st.markdown("**🚀 Tốc độ động cơ**")
-    st.session_state.speed_motor = st.slider(
-        "Tốc độ (m/phút):",
-        min_value=2.5,
-        max_value=5.0,
-        value=st.session_state.speed_motor,
-        step=0.1,
-        help="Điều chỉnh tốc độ hoạt động của động cơ"
-    )
-
     # Cài đặt PLC Snap7
     st.markdown("""      
     <div class="setting-card">      
-        <h3 class="setting-title">🔌 Kết nối PLC Snap7</h3>      
+        <h3 class="setting-title">🔌 Kết nối PLC</h3>      
     </div>      
     """, unsafe_allow_html=True)
 
