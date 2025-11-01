@@ -1,0 +1,34 @@
+[
+  {
+    "data": "DH143282, Miền Bắc, Ao thun (SP5043)",
+    "type": "QRCODE",
+    "time": "2025-11-01 15:33:37",
+    "region": "Miền Bắc",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH143282, Mien Nam, Ao thun (SP5043)",
+    "type": "QRCODE",
+    "time": "2025-11-01 15:33:37",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH143282, Miền Trung, Ao thun (SP5043)",
+    "type": "QRCODE",
+    "time": "2025-11-01 15:33:37",
+    "region": "Miền Trung",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH143282, Trung quoc, Ao thun (SP5043)",
+    "type": "QRCODE",
+    "time": "2025-11-01 15:33:37",
+    "region": "Miền khác",
+    "package_id": 0,
+    "region_code": 1
+  }
+]

@@ -102,7 +102,7 @@ with nav_col2:
     # Load data theo ngày được chọn
 
         qr_history = load_qr_data(selected_date)
-        st.info(f"📊 Hiển thị data ngày {selected_date.strftime('%Y-%m-%d')}: {len(qr_history)} QR codes")
+        st.info(f"📊 Hiển thị data ngày {selected_date.strftime('%Y-%m-%d')}: {len(qr_history)}")
     else:
         st.warning("Chưa có data nào")
         qr_history = []
@@ -133,11 +133,11 @@ with col1:
     </div>        
     """, unsafe_allow_html=True)
 
-with col2:
+with col5:
     st.markdown(f"""        
     <div class="metric-card">              
-        <div class="metric-label">Mã duy nhất</div>
-        <div class="metric-value">{unique_scans}</div>          
+        <div class="metric-label">Miền khác</div>
+        <div class="metric-value">{len(unique_other)}</div>          
     </div>        
     """, unsafe_allow_html=True)
 
@@ -149,7 +149,7 @@ with col3:
     </div>        
     """, unsafe_allow_html=True)
 
-with col4:
+with col2:
     st.markdown(f"""        
     <div class="metric-card">           
         <div class="metric-label">Miền Trung</div>       
@@ -157,7 +157,7 @@ with col4:
     </div>        
     """, unsafe_allow_html=True)
 
-with col5:
+with col4:
     st.markdown(f"""        
     <div class="metric-card">             
         <div class="metric-label">Miền Nam</div>   

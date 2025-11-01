@@ -259,9 +259,9 @@ def check_led_timer():
             st.session_state.led_timer = None
 
         # Xử lý packages mới
-
+       # Đọc tần số biến tần từ DB4
     def read_vfd_frequency():
-        """Đọc tần số biến tần từ DB4"""
+
         if 'plc_manager' not in st.session_state or not st.session_state.plc_connected:
             return 0.0
 
@@ -269,7 +269,7 @@ def check_led_timer():
             # Đọc DB4 - giả sử frequency được lưu ở offset 0, 2 bytes
             db4_data = st.session_state.plc_manager.read_db(4, 4, 2)
 
-            if db4_data and len(db4_data) >= 2:
+            if db4_data and len(db4_data) >= 2: #dữ liệu phải có ít nhất 2 byte.
                 # Convert 2 bytes thành integer (big-endian)
                 frequency_raw = int.from_bytes(db4_data[0:2], byteorder='big')
                 frequency = frequency_raw
@@ -346,7 +346,7 @@ with col_info3:
     st.markdown("#### 🏎️ Tốc độ động cơ")
     st.metric(
         "",
-        f"{st.session_state.vfd_frequency_speed:.1f} vòng/phút",
+        f"{st.session_state.vfd_frequency_speed:.1f} vòng/phút",#.f là lấso61bao nhieyu so sau dau phay
         delta=None
     )
     # Queue Display
@@ -360,7 +360,7 @@ if st.session_state.package_queue:
             "Package ID": pkg_id,
             "Region Code": region_code,
             "Region": region_code_to_name(region_code),
-            "Status": "Waiting for CB2"
+            "Status": "Chờ tín hiệu cảm biến phân loại"
         })
 
     st.dataframe(queue_data, use_container_width=True)
