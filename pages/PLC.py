@@ -13,6 +13,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+
 # Load CSS
 load_css("Led_BlinkStyle.css")
 st.markdown("""  
@@ -92,10 +93,15 @@ if 'led_timer' not in st.session_state:
     st.session_state.led_timer = None
 if 'db_array_position' not in st.session_state:
     st.session_state.db_array_position = 1
+if 'vfd_frequency' not in st.session_state:
+    st.session_state.vfd_frequency = 0.0
+if 'vfd_frequency_speed' not in st.session_state:
+    st.session_state.vfd_frequency_speed = 0
 # Kiểm tra đăng nhập
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
     st.stop()
+
 
 # Header
 st.markdown("""  
@@ -217,6 +223,12 @@ def process_cb2_sensor():
                         st.session_state.plc_manager.write_db(3, array_offset, 3)
                         add_to_log_stack(
                             f"[PLC] DB1[{current_position}]=0, DB2[{current_position}]=0, DB3[{current_position}]=3")
+                    elif region_code == 0:  # Miền Khác
+                        st.session_state.plc_manager.write_db(1, array_offset, 0)
+                        st.session_state.plc_manager.write_db(2, array_offset, 0)
+                        st.session_state.plc_manager.write_db(3, array_offset, 0)
+                        add_to_log_stack(
+                            f"[PLC] DB1[{current_position}]=0, DB2[{current_position}]=0, DB3[{current_position}]=0")
 
                         # Tăng array position cho lần tiếp theo
                 st.session_state.db_array_position += 1
@@ -248,6 +260,26 @@ def check_led_timer():
 
         # Xử lý packages mới
 
+    def read_vfd_frequency():
+        """Đọc tần số biến tần từ DB4"""
+        if 'plc_manager' not in st.session_state or not st.session_state.plc_connected:
+            return 0.0
+
+        try:
+            # Đọc DB4 - giả sử frequency được lưu ở offset 0, 2 bytes
+            db4_data = st.session_state.plc_manager.read_db(4, 4, 2)
+
+            if db4_data and len(db4_data) >= 2:
+                # Convert 2 bytes thành integer (big-endian)
+                frequency_raw = int.from_bytes(db4_data[0:2], byteorder='big')
+                frequency = frequency_raw
+                st.session_state.vfd_frequency_speed = frequency*120/200
+                return frequency
+            return 0
+        except Exception as e:
+            add_to_log_stack(f"[ERROR] Lỗi đọc frequency DB4: {str(e)}")
+            return 0.0
+
 process_new_packages()
 
 # Xử lý CB2 sensors
@@ -257,23 +289,66 @@ process_cb2_sensor()
 check_led_timer()
 
 # Control Panel
-st.markdown("<h2 style='text-align: center;'>🎛️ Bộ đếm</h2>", unsafe_allow_html=True)
+#st.markdown("<h2 style='text-align: center;'>🎛️ Bộ đếm</h2>", unsafe_allow_html=True)
 
-col_control1, col_control2, col_control3 = st.columns(3)
+#col_control1, col_control2, col_control3 = st.columns(3)
 
-with col_control1:
-    st.metric("Gói hàng cần đếm", st.session_state.package_counter)
+#with col_control1:
+#    st.metric("Sản phẩm đã quét", st.session_state.package_counter)
 
-with col_control2:
-    st.metric("Số lượng hàng cần đếm", len(st.session_state.package_queue))
+#with col_control2:
+#    st.metric("Số lượng hàng hóa truyền cho PLC", len(st.session_state.package_queue))
+#with col_control3:
+#    if st.session_state.processing_package:
+#        pkg_id, region_code = st.session_state.processing_package
+#        st.metric("Processing", f"ID:{pkg_id}")
+#    else:
+#        st.metric("Processing", "None")
 
-with col_control3:
-    if st.session_state.processing_package:
-        pkg_id, region_code = st.session_state.processing_package
-        st.metric("Processing", f"ID:{pkg_id}")
+col_info1, col_info2, col_info3= st.columns(3)
+
+with col_info1:
+    st.markdown("#### ⚙️ Thông số hệ thống")
+    st.metric("Tổng QR đã quét", len(qr_data))
+    st.metric("Packages đã xử lý", st.session_state.package_counter - len(st.session_state.package_queue))
+
+    # PLC Status
+    if 'plc_connected' in st.session_state and st.session_state.plc_connected:
+        st.success("🟢 PLC Connected")
     else:
-        st.metric("Processing", "None")
+        st.error("🔴 PLC Disconnected")
+with col_info2:
+    st.markdown("#### 📋 Gói hàng tiếp theo")
+    if st.session_state.package_queue:
+        next_package = st.session_state.package_queue[0]
+        pkg_id, region_code = next_package
+        region_name = region_code_to_name(region_code)
 
+        st.markdown(f"""  
+        <div class="active-timer">  
+            <strong>Mã ID: {pkg_id}</strong><br>  
+            <small>Khu vực: {region_name} (Code: {region_code})</small><br>  
+            <small>trạng thái: Chờ tín hiệu từ cảm bien phân loại</small>  
+        </div>  
+        """, unsafe_allow_html=True)
+    else:
+        st.info("Không có package trong queue")
+
+    # Log Stack
+with col_info3:
+    # Thêm hiển thị tần số biến tần
+    st.markdown("#### ⚡ Tần số động cơ")
+    st.metric(
+        "",
+        f"{st.session_state.vfd_frequency:.1f} Hz",
+        delta=None
+    )
+    st.markdown("#### 🏎️ Tốc độ động cơ")
+    st.metric(
+        "",
+        f"{st.session_state.vfd_frequency_speed:.1f} vòng/phút",
+        delta=None
+    )
     # Queue Display
 st.markdown("<h2 style='text-align: center;'> 📊 Gói hàng chờ</2>", unsafe_allow_html=True)
 if st.session_state.package_queue:
@@ -316,37 +391,6 @@ for i, (region, color) in enumerate(zip(regions, colors)):
         """, unsafe_allow_html=True)
 
     # System Info
-col_info1, col_info2 = st.columns(2)
-
-with col_info1:
-    st.markdown("### ⚙️ Thông số hệ thống")
-    st.metric("Tổng QR đã quét", len(qr_data))
-    st.metric("Packages đã xử lý", st.session_state.package_counter - len(st.session_state.package_queue))
-
-    # PLC Status
-    if 'plc_connected' in st.session_state and st.session_state.plc_connected:
-        st.success("🟢 PLC Connected")
-    else:
-        st.error("🔴 PLC Disconnected")
-
-with col_info2:
-    st.markdown("### 📋 Gói hàng tiếp theo")
-    if st.session_state.package_queue:
-        next_package = st.session_state.package_queue[0]
-        pkg_id, region_code = next_package
-        region_name = region_code_to_name(region_code)
-
-        st.markdown(f"""  
-        <div class="active-timer">  
-            <strong>Package ID: {pkg_id}</strong><br>  
-            <small>Region: {region_name} (Code: {region_code})</small><br>  
-            <small>Status: Waiting for CB2 trigger</small>  
-        </div>  
-        """, unsafe_allow_html=True)
-    else:
-        st.info("Không có package trong queue")
-
-    # Log Stack
 st.markdown("### 📜 Lịch sử đơn hàng ")
 if st.session_state.log_stack:
     recent_logs = st.session_state.log_stack[-10:]
