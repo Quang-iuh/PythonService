@@ -267,7 +267,7 @@ def check_led_timer():
 
         try:
             # Đọc DB4 - giả sử frequency được lưu ở offset 0, 2 bytes
-            db4_data = st.session_state.plc_manager.read_db(4, 4, 2)
+            db4_data = st.session_state.plc_manager.read_db(14, 4, 2)
 
             if db4_data and len(db4_data) >= 2: #dữ liệu phải có ít nhất 2 byte.
                 # Convert 2 bytes thành integer (big-endian)
