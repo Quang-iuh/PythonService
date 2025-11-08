@@ -1,7 +1,11 @@
+from operator import truediv
+
 import streamlit as st
 import time
+import base64
 
 # Cấu hình trang
+
 st.set_page_config(
     page_title="🔐 Đăng nhập QR System",
     layout="centered",
@@ -10,6 +14,7 @@ st.set_page_config(
 # CSS hiện đại
 st.markdown("""  
 <style>  
+    
     .login-container {  
         max-width: 400px;  
         margin: 0 auto;  
@@ -17,7 +22,7 @@ st.markdown("""
     }  
 
     .login-header {  
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  
+        background: linear-gradient(blue, white);  
         padding: 2rem;  
         border-radius: 20px 20px 0 0;  
         color: white;  
@@ -71,9 +76,29 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Form đăng nhập
-st.markdown('<div class="login-form">', unsafe_allow_html=True)
+def set_bg_image(image_file):
+    with open(image_file, "rb") as f:
+        data = f.read()
+    b64 = base64.b64encode(data).decode()
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/png;base64,{b64}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+# Gọi hàm ngoài định nghĩa
+set_bg_image("image/IUH.jpg")
 
 with st.container():
+
     username = st.text_input(
         "👤 Tên đăng nhập",
         placeholder="Nhập username...",

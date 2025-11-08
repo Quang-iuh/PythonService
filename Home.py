@@ -67,12 +67,16 @@ st.markdown("""
 
 # Kiểm tra đăng nhập
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
-    st.switch_page("pages/login.py")
-
+    st.switch_page("pages/Login.py")
+im_co1,im_co2=st.columns(2)
+with im_co1:
+    st.image("image/images2.jfif",width=200)
+with im_co2:
+    st.image("image/images.png", width=200 )
 # Header chính
 st.markdown("""  
 <div class="main-header">  
-    <h1>🏠 HỆ THỐNG XỬ LÝ ẢNH</h1>   
+    <h1> ĐỒ ÁN TỐT NGHIỆP </h1> 
 </div>  
 """.format(st.session_state.get('username', 'User')), unsafe_allow_html=True)
 
@@ -161,3 +165,4 @@ with nav_col2:
         st.session_state.logged_in = False
         st.session_state.username = ""
         st.rerun()
+

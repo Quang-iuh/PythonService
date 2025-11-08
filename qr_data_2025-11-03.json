@@ -1,0 +1,26 @@
+[
+  {
+    "data": "DH278644, Mien Trung, Dep to ong (SP6612)",
+    "type": "QRCODE",
+    "time": "2025-11-03 14:52:18",
+    "region": "Miền Trung",
+    "package_id": 0,
+    "region_code": 3
+  },
+  {
+    "data": "DH143282, Miền Bắc, Ao thun (SP5043)",
+    "type": "QRCODE",
+    "time": "2025-11-01 15:33:37",
+    "region": "Miền Bắc",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH143282, Mien Nam, Ao thun (SP5043)",
+    "type": "QRCODE",
+    "time": "2025-11-01 15:33:37",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  }
+]

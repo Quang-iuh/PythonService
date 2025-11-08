@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-import struct
+
 from datetime import datetime
 from collections import deque
 from utils.qr_storage import load_qr_data
@@ -12,8 +12,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-
 # Load CSS
 load_css("Led_BlinkStyle.css")
 st.markdown("""  
@@ -205,28 +203,20 @@ def process_cb2_sensor():
                 if 'plc_manager' in st.session_state and st.session_state.plc_connected:
                     if region_code == 1:  # Miền Nam
                         st.session_state.plc_manager.write_db(1, array_offset, 1)
-                        st.session_state.plc_manager.write_db(2, array_offset, 0)
-                        st.session_state.plc_manager.write_db(3, array_offset, 0)
                         add_to_log_stack(
                             f"[PLC] DB1[{current_position}]=1, DB2[{current_position}]=0, DB3[{current_position}]=0")
 
                     elif region_code == 2:  # Miền Bắc
-                        st.session_state.plc_manager.write_db(1, array_offset, 0)
-                        st.session_state.plc_manager.write_db(2, array_offset, 2)
-                        st.session_state.plc_manager.write_db(3, array_offset, 0)
+                        st.session_state.plc_manager.write_db(1, array_offset, 2)
                         add_to_log_stack(
                             f"[PLC] DB1[{current_position}]=0, DB2[{current_position}]=2, DB3[{current_position}]=0")
 
                     elif region_code == 3:  # Miền Trung
-                        st.session_state.plc_manager.write_db(1, array_offset, 0)
-                        st.session_state.plc_manager.write_db(2, array_offset, 0)
-                        st.session_state.plc_manager.write_db(3, array_offset, 3)
+                        st.session_state.plc_manager.write_db(1, array_offset, 3)
                         add_to_log_stack(
                             f"[PLC] DB1[{current_position}]=0, DB2[{current_position}]=0, DB3[{current_position}]=3")
                     elif region_code == 0:  # Miền Khác
-                        st.session_state.plc_manager.write_db(1, array_offset, 0)
-                        st.session_state.plc_manager.write_db(2, array_offset, 0)
-                        st.session_state.plc_manager.write_db(3, array_offset, 0)
+                        st.session_state.plc_manager.write_db(1, array_offset, 4)
                         add_to_log_stack(
                             f"[PLC] DB1[{current_position}]=0, DB2[{current_position}]=0, DB3[{current_position}]=0")
 
@@ -267,13 +257,13 @@ def check_led_timer():
 
         try:
             # Đọc DB4 - giả sử frequency được lưu ở offset 0, 2 bytes
-            db4_data = st.session_state.plc_manager.read_db(14, 4, 2)
+            db4_data = st.session_state.plc_manager.read_db(14, 2, 2)
 
             if db4_data and len(db4_data) >= 2: #dữ liệu phải có ít nhất 2 byte.
                 # Convert 2 bytes thành integer (big-endian)
                 frequency_raw = int.from_bytes(db4_data[0:2], byteorder='big')
                 frequency = frequency_raw
-                st.session_state.vfd_frequency_speed = frequency*120/200
+                st.session_state.vfd_frequency_speed = db14_value*120/200
                 return frequency
             return 0
         except Exception as e:
@@ -288,29 +278,14 @@ process_cb2_sensor()
 # Kiểm tra LED timer
 check_led_timer()
 
-# Control Panel
-#st.markdown("<h2 style='text-align: center;'>🎛️ Bộ đếm</h2>", unsafe_allow_html=True)
-
-#col_control1, col_control2, col_control3 = st.columns(3)
-
-#with col_control1:
-#    st.metric("Sản phẩm đã quét", st.session_state.package_counter)
-
-#with col_control2:
-#    st.metric("Số lượng hàng hóa truyền cho PLC", len(st.session_state.package_queue))
-#with col_control3:
-#    if st.session_state.processing_package:
-#        pkg_id, region_code = st.session_state.processing_package
-#        st.metric("Processing", f"ID:{pkg_id}")
-#    else:
-#        st.metric("Processing", "None")
-
 col_info1, col_info2, col_info3= st.columns(3)
 
 with col_info1:
-    st.markdown("#### ⚙️ Thông số hệ thống")
+    st.markdown("### ⚙️ Thông số hệ thống")
     st.metric("Tổng QR đã quét", len(qr_data))
     st.metric("Packages đã xử lý", st.session_state.package_counter - len(st.session_state.package_queue))
+
+    # Thêm đọc DB14.ID[2]
 
     # PLC Status
     if 'plc_connected' in st.session_state and st.session_state.plc_connected:
@@ -337,10 +312,14 @@ with col_info2:
     # Log Stack
 with col_info3:
     # Thêm hiển thị tần số biến tần
-    st.markdown("#### ⚡ Tần số động cơ")
+    if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+        db14_data = st.session_state.plc_manager.read_db(14, 4, 2)  # Offset 4 cho ID[2]
+        if db14_data and len(db14_data) >= 2:
+            db14_value = int.from_bytes(db14_data[0:2], byteorder='big')
+            st.session_state.vfd_frequency_speed=db14_value*120/120
     st.metric(
-        "",
-        f"{st.session_state.vfd_frequency:.1f} Hz",
+        "#### ⚡ Tần số động cơ",
+        f"{db14_value:.0f} Hz",
         delta=None
     )
     st.markdown("#### 🏎️ Tốc độ động cơ")
@@ -429,6 +408,6 @@ with st.sidebar:
     if st.button("🔒 Đăng xuất", use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.username = ""
-        st.switch_page("pages/login.py")
-    time.sleep(0.5)
-    st.rerun()
+        st.switch_page("pages/Login.py")
+time.sleep(0.5)
+st.rerun()

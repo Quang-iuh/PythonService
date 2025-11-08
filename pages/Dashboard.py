@@ -280,4 +280,4 @@ with st.sidebar:
     if st.button("🔒 Đăng xuất", use_container_width=True):
         st.session_state.logged_in = False,
         st.session_state.username = ""
-        st.switch_page("pages/login.py")
+        st.switch_page("pages/Login.py")

@@ -1,10 +1,9 @@
 import streamlit as st
 import snap7
 import struct
-import time
-import socket
+
 from Component.Camera.CameraHeader import load_css
-from pages.Dashboard import qr_history, total_scans, unique_scans, unique_north, unique_central, unique_south
+
 
 # Cấu hình trang
 st.set_page_config(
@@ -328,4 +327,4 @@ with st.sidebar:
     if st.button("🔒 Đăng xuất", use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.username = ""
-        st.switch_page("pages/login.py")
+        st.switch_page("pages/Login.py")

@@ -44,7 +44,7 @@
     backdrop-filter: blur(10px);
     border-radius: 20px;
     padding: 3rem 2.5rem;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 40px rgba(248, 245, 245, 0.1);
     max-width: 450px;
     width: 100%;
     text-align: center;
@@ -90,7 +90,7 @@ background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     .login-title {
         font-size: 2.5rem;
         font-weight: bold;
-        color: #2c3e50;
+        color: #ffffff;
         margin-bottom: 0.5rem;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
@@ -103,17 +103,19 @@ background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 
     /* Form styling */
     .stTextInput > div > div > input {
+        color: white;
         border-radius: 12px;
         border: 2px solid #e9ecef;
         padding: 15px 20px;
         font-size: 16px;
         transition: all 0.3s ease;
-        background: #f8f9fa;
+        background: #f4f7fa;
     }
 
     .stTextInput > div > div > input:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        color: white;
+        border-color: #f7f7fa;
+        box-shadow: 0 0 0 3px rgb(255, 255, 255);
         background: white;
     }
 
