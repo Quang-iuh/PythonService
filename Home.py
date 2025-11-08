@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit.user_info import login
 
 # Cấu hình trang
 st.set_page_config(
@@ -68,11 +69,7 @@ st.markdown("""
 # Kiểm tra đăng nhập
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.switch_page("pages/Login.py")
-im_co1,im_co2=st.columns(2)
-with im_co1:
-    st.image("image/images2.jfif",width=200)
-with im_co2:
-    st.image("image/images.png", width=200 )
+
 # Header chính
 st.markdown("""  
 <div class="main-header">  
@@ -165,4 +162,20 @@ with nav_col2:
         st.session_state.logged_in = False
         st.session_state.username = ""
         st.rerun()
+with st.sidebar:
+    st.markdown(f"""  
+    <div class="sidebar-section">  
+        <h3>👤 Người dùng</h3>  
+        <p>Xin chào, <strong>{st.session_state.get('username', 'User')}</strong></p>  
+    </div>  
+    """, unsafe_allow_html=True)
+    im_co1, im_co2 = st.columns(2)
+    with im_co1:
+        st.image("image/images2.jfif", width=70)
+    with im_co2:
+        st.image("image/images.png", width=70)
+    if st.button("Đăng xuat",use_container_width=True):
+        st.session_state.logged_in = False
+        st.session_state.username = ""
+        st.switch_page("pages/login.py")
 

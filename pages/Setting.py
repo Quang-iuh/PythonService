@@ -323,6 +323,11 @@ with st.sidebar:
         <p>Xin chào, <strong>{st.session_state.get('username', 'User')}</strong></p>  
     </div>  
     """, unsafe_allow_html=True)
+    im_co1, im_co2 = st.columns(2)
+    with im_co1:
+        st.image("image/images2.jfif", width=50)
+    with im_co2:
+        st.image("image/images.png", width=50)
 
     if st.button("🔒 Đăng xuất", use_container_width=True):
         st.session_state.logged_in = False
