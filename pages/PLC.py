@@ -95,6 +95,8 @@ if 'vfd_frequency' not in st.session_state:
     st.session_state.vfd_frequency = 0.0
 if 'vfd_frequency_speed' not in st.session_state:
     st.session_state.vfd_frequency_speed = 0
+if 'start_button_active' not in st.session_state:
+    st.session_state.start_button_active = False
 # Kiểm tra đăng nhập
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
@@ -110,7 +112,6 @@ st.markdown("""
 
 # Load QR data
 qr_data = load_qr_data()
-
 
 # Functions
 def add_to_log_stack(message):
@@ -251,7 +252,6 @@ def check_led_timer():
         # Xử lý packages mới
        # Đọc tần số biến tần từ DB4
     def read_vfd_frequency():
-
         if 'plc_manager' not in st.session_state or not st.session_state.plc_connected:
             return 0.0
 
@@ -312,6 +312,7 @@ with col_info2:
     # Log Stack
 with col_info3:
     # Thêm hiển thị tần số biến tần
+    db14_value = 0
     if 'plc_manager' in st.session_state and st.session_state.plc_connected:
         db14_data = st.session_state.plc_manager.read_db(14, 4, 2)  # Offset 4 cho ID[2]
         if db14_data and len(db14_data) >= 2:
@@ -328,6 +329,44 @@ with col_info3:
         f"{st.session_state.vfd_frequency_speed:.1f} vòng/phút",#.f là lấso61bao nhieyu so sau dau phay
         delta=None
     )
+    # Thêm Start/Stop button
+    st.markdown("#### Điều khiển động cơ")
+    col_start, col_stop = st.columns([1.5,1.2])
+    def add_to_log_stack(param):
+        pass
+    with col_start:
+
+        if st.button("▶️ KHỞI ĐỘNG", use_container_width=True, type="primary",
+                     disabled=st.session_state.start_button_active):
+            if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+                # Ghi DB14.ID[1] = 1 (offset 2 cho index [1])
+                success = st.session_state.plc_manager.write_db(14, 2, 1)
+                if success:
+                    st.session_state.start_button_active = True
+                    add_to_log_stack("[START] DB14.ID[1] = 1")
+                    st.success("✅ Đã gửi tín hiệu START")
+                    st.rerun()
+                else:
+                    st.error("❌ Lỗi ghi DB14.ID[1]")
+            else:
+                st.error("🔴 PLC chưa kết nối")
+
+    with col_stop:
+        if st.button("⏹️ DỪNG", use_container_width=True, type="secondary",
+                     disabled=not st.session_state.start_button_active):
+            if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+                # Ghi DB14.ID[1] = 0 (offset 2 cho index [1])
+                success = st.session_state.plc_manager.write_db(14, 2, 2)
+                if success:
+                    st.session_state.start_button_active = False
+                    add_to_log_stack("[STOP] DB14.ID[1] = 0")
+                    st.warning("⏹️ Đã gửi tín hiệu STOP")
+                    st.rerun()
+                else:
+                    st.error("❌ Lỗi ghi DB14.ID[1]")
+            else:
+                st.error("🔴 PLC chưa kết nối")
+
     # Queue Display
 st.markdown("<h2 style='text-align: center;'> 📊 Gói hàng chờ</2>", unsafe_allow_html=True)
 if st.session_state.package_queue:

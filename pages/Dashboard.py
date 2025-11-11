@@ -14,6 +14,7 @@ load_css("Led_BlinkStyle.css")
 st.markdown("""  
 <style>  
 .main-header {  
+    font-family: 'Times New Roman', sans-serif;  /* Thêm dòng này */  
     background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);  
     padding: 1.5rem;  
     border-radius: 10px;  
@@ -72,8 +73,7 @@ st.markdown("""
 # Header chính
 st.markdown("""        
 <div class="main-header">        
-    <h1>📊 THỐNG KÊ & BÁO CÁO</h1>  
-    <p>Phân tích dữ liệu quét mã QR theo thời gian thực</p>        
+    <h1>📊 THỐNG KÊ & BÁO CÁO</h1>    
 </div>        
 """, unsafe_allow_html=True)
 # Kiểm tra đăng nhập
@@ -233,7 +233,7 @@ if qr_history:
         st.markdown('</div>', unsafe_allow_html=True)
 
         # Download button
-        csv = filtered_df.to_csv(index=False, encoding='utf-8-sig')
+        csv = filtered_df.to_csv(index=False, encoding='utf-8-sig', sep=',')
         st.download_button(
             label="📥 Tải xuống",
             data=csv,

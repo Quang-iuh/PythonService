@@ -112,7 +112,7 @@ def render_remote_camera():
                 except Exception as e:
                     qr_status_placeholder.error(f"Connection error: {e}")
 
-                    # Auto-refresh every 200ms
+                    # Auto-refresh every 1s
                 time.sleep(1)
                 st.rerun()
         else:
@@ -149,7 +149,7 @@ class VideoProcessor(VideoProcessorBase):
                           (points[0][0] + len(data) * 12, points[0][1] - 5),
                           (0, 255, 0), -1)
             cv2.putText(img, data, (points[0][0], points[0][1] - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)# chỉnh fontScant thì chữ nhỏ hơn và thinkness thi chu manh hơn
 
         st.session_state.last_active = time.time()
         return av.VideoFrame.from_ndarray(img, format="bgr24")
@@ -186,9 +186,9 @@ with col1:
             video_processor_factory=VideoProcessor,
             media_stream_constraints={
                 "video": {
-                    "width": {"ideal": 320},
-                    "height": {"ideal": 240},
-                    "frameRate": {"ideal": 30}
+                    "width": {"ideal": 1280},
+                    "height": {"ideal": 720},
+                    "frameRate": {"ideal": st.session_state.get('camera_fps', 30)}
                 },
                 "audio": False
             },

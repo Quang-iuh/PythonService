@@ -2,6 +2,8 @@ import streamlit as st
 import snap7
 import struct
 
+from pip._internal import resolution
+
 from Component.Camera.CameraHeader import load_css
 
 
@@ -172,11 +174,13 @@ if 'logged_in' not in st.session_state or not st.session_state.logged_in:
 if "grayscale" not in st.session_state:
     st.session_state.grayscale = False
 if "resolution" not in st.session_state:
-    st.session_state.resolution = (640, 480)
+    st.session_state.resolution = (1280, 720)
 if 'zoom_level' not in st.session_state:
     st.session_state.zoom_level = 1.0
 if 'speed_motor' not in st.session_state:
     st.session_state.speed_motor = 2.5
+if 'camera_fps' not in st.session_state:
+    st.session_state.camera_fps = 30  # Default 30 FPS
 
 # PLC session state
 if 'plc_connected' not in st.session_state:
@@ -193,10 +197,10 @@ col1, col2 = st.columns([1, 1])
 
 with col1:
     # Cài đặt Camera
-    st.markdown("""      
-    <div class="setting-card">      
-        <h3 class="setting-title">📹 Cài đặt Camera</h3>      
-    </div>      
+    st.markdown("""        
+    <div class="setting-card">        
+        <h3 class="setting-title">📹 Cài đặt Camera</h3>        
+    </div>        
     """, unsafe_allow_html=True)
 
     st.session_state.grayscale = st.checkbox(
@@ -205,6 +209,28 @@ with col1:
         help="Chuyển đổi hình ảnh sang màu xám"
     )
 
+    # FPS Selector
+    st.markdown("**🎬 Frame Rate (FPS)**")
+    fps_options = {
+        "15 FPS (Tiết kiệm)": 15,
+        "30 FPS (Chuẩn)": 30,
+        "60 FPS (Cao)": 60
+    }
+
+    current_fps_label = f"{st.session_state.camera_fps} FPS"
+    for key, value in fps_options.items():
+        if value == st.session_state.camera_fps:
+            current_fps_label = key
+            break
+
+    selected_fps = st.selectbox(
+        "Chọn FPS:",
+        list(fps_options.keys()),
+        index=list(fps_options.keys()).index(current_fps_label) if current_fps_label in fps_options.keys() else 1
+    )
+    st.session_state.camera_fps = fps_options[selected_fps]
+
+    # Resolution selector (existing code)
     st.markdown("**📐 Độ phân giải**")
     resolution_options = {
         "640x480 (SD)": (640, 480),
@@ -224,6 +250,7 @@ with col1:
         index=list(resolution_options.keys()).index(current_res) if current_res in resolution_options.keys() else 0
     )
     st.session_state.resolution = resolution_options[selected_res]
+
 
 with col2:
     # Cài đặt PLC Snap7
@@ -306,12 +333,14 @@ with col2:
 if st.button("🔄 Reset về mặc định", use_container_width=True):
     st.session_state.grayscale = False
     st.session_state.zoom_level = 1.0
-    st.session_state.resolution = (640, 480)
+    st.session_state.resolution = (1280, 720)
+    st.session_state.camera_fps = 30  # Reset FPS về 30
     st.session_state.speed_motor = 2.5
     st.session_state.plc_connected = False
     st.session_state.plc_ip = "192.168.0.1"
     st.session_state.plc_rack = 0
     st.session_state.plc_slot = 1
+    st.session_state.FPS=24
     st.success("Đã reset về cài đặt mặc định!")
     st.rerun()
 

@@ -1,13 +1,15 @@
 import streamlit as st
 from streamlit.user_info import login
 
+from Component.Camera.CameraHeader import load_css
+
 # Cấu hình trang
 st.set_page_config(
     page_title="🏠 QR Scanner System",
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
+load_css("Home.css")
 # CSS tối ưu
 st.markdown("""  
 <style>  
@@ -90,14 +92,13 @@ if 'qr_history' in st.session_state:
     """, unsafe_allow_html=True)
 
 # Chức năng chính - Layout 4 cột
-col1, col2, col3, col4 = st.columns(4, gap="large")
+col1, col2, col3, col4 = st.columns(4, gap="small")
 
 with col1:
     st.markdown("""  
     <div class="feature-card">  
         <div class="feature-icon">📸</div>  
-        <h4>Camera Scanner</h4>  
-        <p>Quét QR </p>  
+        <h5 style="text-align: center;">Camera Scanner</h5>  
     </div>  
     """, unsafe_allow_html=True)
 
@@ -105,8 +106,7 @@ with col3:
     st.markdown("""    
     <div class="feature-card">    
         <div class="feature-icon">🔌</div>    
-        <h4>PLC Controller</h4>    
-        <p>Truyền dữ liệu cho PLC</p>    
+        <h5 style="text-align: center;">PLC Controller</h5>       
     </div>    
     """, unsafe_allow_html=True)
 
@@ -114,8 +114,7 @@ with col2:
     st.markdown("""  
     <div class="feature-card">  
         <div class="feature-icon">📊</div>  
-        <h4>THỐNG KÊ</h4>  
-        <p>Thống kê và báo cáo chi tiết</p>  
+        <h5 style="text-align: center;">THỐNG KÊ</h5>   
     </div>  
     """, unsafe_allow_html=True)
 
@@ -123,8 +122,7 @@ with col4:
     st.markdown("""  
     <div class="feature-card">  
         <div class="feature-icon">⚙️</div>  
-        <h4>SETTING</h4>  
-        <p>Cài đặt thông số hệ thống</p>  
+        <h5 style="text-align: center;">SETTING</h5>  
     </div>  
     """, unsafe_allow_html=True)
 
