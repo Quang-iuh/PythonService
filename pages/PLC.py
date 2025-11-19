@@ -379,8 +379,8 @@ st.markdown("### 🗑️ Quản lý dữ liệu")
 col_reset, col_info = st.columns([1, 2])
 with col_reset:
         if st.button("🔄 Reset dữ liệu hôm nay",
-                use_container_width=True,
-                type="secondary"):# Confirmation dialog
+            use_container_width=True,
+            type="secondary"):# Confirmation dialog
             if 'confirm_reset' not in st.session_state:
                 st.session_state.confirm_reset = False
                 st.session_state.confirm_reset = True
@@ -388,6 +388,7 @@ with col_info:
     if st.session_state.get('confirm_reset', False):
         st.warning("⚠️ Bạn có chắc muốn xóa toàn bộ dữ liệu hôm nay?")
         col_yes, col_no = st.columns(2)
+        # Sau đó mới sử dụng
     with col_yes:
         if st.button("✅ Xác nhận", use_container_width=True, type="primary"):
             success, message = reset_daily_data()
@@ -403,10 +404,10 @@ with col_info:
                 st.rerun()
             else:
                 st.error(message)
-        with col_no:
-            if st.button("❌ Hủy", use_container_width=True):
-                st.session_state.confirm_reset = False
-                st.rerun()
+    with col_no:
+        if st.button("❌ Hủy", use_container_width=True):
+            st.session_state.confirm_reset = False
+            st.rerun()
 
 if st.button("🔒 Đăng xuất", use_container_width=True):
     st.session_state.logged_in = False

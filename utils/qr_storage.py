@@ -11,6 +11,23 @@ def get_last_qr():
     return ""
 
 
+def reset_daily_data(date=None):
+    """Reset toàn bộ data của ngày được chọn"""
+    data_file = get_daily_filename(date)
+
+    try:
+        if os.path.exists(data_file):
+            # Xóa file cũ
+            os.remove(data_file)
+            # Tạo file mới rỗng
+            with open(data_file, 'w', encoding='utf-8') as f:
+                json.dump([], f, indent=2, ensure_ascii=False)
+            return True, f"✅ Đã reset dữ liệu ngày {datetime.now().strftime('%Y-%m-%d')}"
+        else:
+            return False, "⚠️ File không tồn tại"
+    except Exception as e:
+        return False, f"❌ Lỗi reset: {str(e)}"
+
 def get_daily_filename(date=None):
     """Tạo filename theo ngày"""
     if date is None:
