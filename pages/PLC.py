@@ -323,7 +323,9 @@ with col_info3:
         delta=None
     )
     # Queue Display
-st.markdown("<h2 style='text-align: center;'> 📜 Lịch sử đơn hàng</2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center;'> 🗑️ Quản lý dữ liệu</2>", unsafe_allow_html=True)
+st.markdown("---")
+st.markdown("<h3 style='text-align: center;'> 📜 Lịch sử đơn hàng</3>", unsafe_allow_html=True)
 if st.session_state.package_queue:
     queue_data = []
 
@@ -338,10 +340,10 @@ if st.session_state.package_queue:
 
     st.dataframe(queue_data, use_container_width=True)
 else:
-    st.info("Chưa có đơn hàng nào đã quét...")
+    st.info("Chưa có đơn hàng nào...")
 
  # Reset Data Button
-st.markdown("<h2 style='text-align: center;'> 🗑️ Quản lý dữ liệu</2>", unsafe_allow_html=True)
+
 if st.button("🔄 Reset dữ liệu lưu trữ", use_container_width=True, type="secondary"):
     from utils.qr_storage import reset_daily_data
 
