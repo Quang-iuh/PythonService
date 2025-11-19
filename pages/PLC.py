@@ -329,44 +329,6 @@ with col_info3:
         f"{st.session_state.vfd_frequency_speed:.1f} vòng/phút",#.f là lấso61bao nhieyu so sau dau phay
         delta=None
     )
-    # Thêm Start/Stop button
-    st.markdown("#### Điều khiển động cơ")
-    col_start, col_stop = st.columns([1.5,1.2])
-    def add_to_log_stack(param):
-        pass
-    with col_start:
-
-        if st.button("▶️ KHỞI ĐỘNG", use_container_width=True, type="primary",
-                     disabled=st.session_state.start_button_active):
-            if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-                # Ghi DB14.ID[1] = 1 (offset 2 cho index [1])
-                success = st.session_state.plc_manager.write_db(14, 2, 1)
-                if success:
-                    st.session_state.start_button_active = True
-                    add_to_log_stack("[START] DB14.ID[1] = 1")
-                    st.success("✅ Đã gửi tín hiệu START")
-                    st.rerun()
-                else:
-                    st.error("❌ Lỗi ghi DB14.ID[1]")
-            else:
-                st.error("🔴 PLC chưa kết nối")
-
-    with col_stop:
-        if st.button("⏹️ DỪNG", use_container_width=True, type="secondary",
-                     disabled=not st.session_state.start_button_active):
-            if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-                # Ghi DB14.ID[1] = 0 (offset 2 cho index [1])
-                success = st.session_state.plc_manager.write_db(14, 2, 2)
-                if success:
-                    st.session_state.start_button_active = False
-                    add_to_log_stack("[STOP] DB14.ID[1] = 0")
-                    st.warning("⏹️ Đã gửi tín hiệu STOP")
-                    st.rerun()
-                else:
-                    st.error("❌ Lỗi ghi DB14.ID[1]")
-            else:
-                st.error("🔴 PLC chưa kết nối")
-
     # Queue Display
 st.markdown("<h2 style='text-align: center;'> 📊 Gói hàng chờ</2>", unsafe_allow_html=True)
 if st.session_state.package_queue:
@@ -384,30 +346,6 @@ if st.session_state.package_queue:
     st.dataframe(queue_data, use_container_width=True)
 else:
     st.info("Queue rỗng - chưa có packages")
-
-# LED Display
-st.markdown("### 💡 Trạng thái gói hàng được truyền")
-
-col1, col2, col3 = st.columns(3)
-regions = ["Miền Bắc", "Miền Trung", "Miền Nam"]
-colors = ["red", "yellow", "green"]
-
-for i, (region, color) in enumerate(zip(regions, colors)):
-    with [col1, col2, col3][i]:
-        led_class = f"led-{color}" if st.session_state.led_status[region] else "led-off"
-
-        st.markdown(f"""  
-        <div class="led-container">  
-            <div>  
-                <div class="led-circle {led_class}">{region[:2]}</div>  
-                <div class="region-info">  
-                    <strong>{region}</strong><br>  
-                    Code: {classify_qr_to_region_code(region)}  
-                </div>  
-            </div>  
-        </div>  
-        """, unsafe_allow_html=True)
-
     # System Info
 st.markdown("### 📜 Lịch sử đơn hàng ")
 if st.session_state.log_stack:
