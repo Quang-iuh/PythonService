@@ -96,11 +96,11 @@ if 'vfd_frequency' not in st.session_state:
     st.session_state.vfd_frequency = 0.0
 if 'confirm_reset' not in st.session_state:
     st.session_state.confirm_reset = False
+
 # Kiểm tra đăng nhập
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
     st.stop()
-
 
 # Header
 st.markdown("""  
@@ -289,6 +289,7 @@ with col_info1:
         st.success("🟢 PLC Connected")
     else:
         st.error("🔴 PLC Disconnected")
+
 with col_info2:
     st.markdown("#### 📋 Gói hàng tiếp theo")
     if st.session_state.package_queue:
@@ -300,11 +301,11 @@ with col_info2:
         <div class="active-timer">  
             <strong>Khay số: {pkg_id}</strong><br>  
             <small>Khu vực: {region_name} (Mã: {region_code})</small><br>  
-            <small>Trạng thái: Chờ tín hiệu từ cảm bien phân loại</small>  
+            <small>Trạng thái: Chờ tín hiệu từ cảm biến</small>  
         </div>  
         """, unsafe_allow_html=True)
     else:
-        st.info("Không có package trong queue")
+        st.info("Chờ gói hàng tiếp theo...")
 
     # Log Stack
 with col_info3:
@@ -322,7 +323,7 @@ with col_info3:
         delta=None
     )
     # Queue Display
-st.markdown("<h2 style='text-align: center;'> 📊 Gói hàng chờ</2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center;'> 📜 Lịch sử đơn hàng</2>", unsafe_allow_html=True)
 if st.session_state.package_queue:
     queue_data = []
 
@@ -337,16 +338,25 @@ if st.session_state.package_queue:
 
     st.dataframe(queue_data, use_container_width=True)
 else:
-    st.info("Queue rỗng - chưa có packages")
-    # System Info
+    st.info("Chưa có đơn hàng nào đã quét...")
 
-st.markdown("### 📜 Lịch sử đơn hàng ")
-if st.session_state.log_stack:
-    recent_logs = st.session_state.log_stack[-10:]
-    for log in reversed(recent_logs):
-        st.text(log)
-else:
-    st.info("Chưa có log nào...")
+ # Reset Data Button
+st.markdown("<h2 style='text-align: center;'> 🗑️ Quản lý dữ liệu</2>", unsafe_allow_html=True)
+if st.button("🔄 Reset dữ liệu lưu trữ", use_container_width=True, type="secondary"):
+    from utils.qr_storage import reset_daily_data
+
+    if reset_daily_data():
+        # Reset session state
+        st.session_state.package_counter = 0
+        st.session_state.package_queue.clear()
+        st.session_state.last_qr_count = 0
+        st.session_state.log_stack = []
+
+        st.success("✅ Đã reset toàn bộ dữ liệu!")
+        st.session_state.show_reset_confirm = False
+        st.rerun()
+    else:
+        st.error("❌ Lỗi khi reset dữ liệu")
 
 # Sidebar
 with st.sidebar:
@@ -357,61 +367,15 @@ with st.sidebar:
     </div>  
     """, unsafe_allow_html=True)
 
-    st.markdown("""        
-    <div class="sidebar-section">        
-        <h3>📊 Thống kê nhanh</h3>        
-    </div>        
-    """, unsafe_allow_html=True)
-    st.metric("Total Packages", st.session_state.package_counter)
-    st.metric("Queue Length", len(st.session_state.package_queue))
-    st.metric("Processed", st.session_state.package_counter - len(st.session_state.package_queue))
-
     if st.session_state.package_queue:
         st.write("**Next 3 in Queue:**")
         for i, (pkg_id, region_code) in enumerate(list(st.session_state.package_queue)[:3]):
             code_to_region = {1: "MN", 2: "MB", 3: "MT", 0: "Other"}
             region_short = code_to_region.get(region_code, "Other")
             st.write(f"{i + 1}. ID:{pkg_id} → {region_short}")
-
-st.markdown("---")
-    # Reset Data Button
-st.markdown("### 🗑️ Quản lý dữ liệu")
-col_reset, col_info = st.columns([1, 2])
-with col_reset:
-        if st.button("🔄 Reset dữ liệu hôm nay",
-            use_container_width=True,
-            type="secondary"):# Confirmation dialog
-            if 'confirm_reset' not in st.session_state:
-                st.session_state.confirm_reset = False
-                st.session_state.confirm_reset = True
-with col_info:
-    if st.session_state.get('confirm_reset', False):
-        st.warning("⚠️ Bạn có chắc muốn xóa toàn bộ dữ liệu hôm nay?")
-        col_yes, col_no = st.columns(2)
-        # Sau đó mới sử dụng
-    with col_yes:
-        if st.button("✅ Xác nhận", use_container_width=True, type="primary"):
-            success, message = reset_daily_data()
-            if success:
-                st.success(message)
-                # Reset session state counters
-                st.session_state.package_counter = 0
-                st.session_state.package_queue.clear()
-                st.session_state.last_qr_count = 0
-                add_to_log_stack("[RESET] Đã xóa toàn bộ dữ liệu hôm nay")
-                st.session_state.confirm_reset = False
-                time.sleep(1)
-                st.rerun()
-            else:
-                st.error(message)
-    with col_no:
-        if st.button("❌ Hủy", use_container_width=True):
-            st.session_state.confirm_reset = False
-            st.rerun()
-
-if st.button("🔒 Đăng xuất", use_container_width=True):
-    st.session_state.logged_in = False
-    st.session_state.username = ""
-    st.switch_page("pages/Login.py")
-time.sleep(0.5)
-st.rerun()
+    if st.button("🔒 Đăng xuất", use_container_width=True):
+        st.session_state.logged_in = False
+        st.session_state.username = ""
+        st.switch_page("pages/Login.py")
+        time.sleep(0.5)
+        st.rerun()
