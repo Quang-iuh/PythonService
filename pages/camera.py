@@ -154,9 +154,6 @@ class VideoProcessor(VideoProcessorBase):
         st.session_state.last_active = time.time()
         return av.VideoFrame.from_ndarray(img, format="bgr24")
 
-    # Auto-refresh logic
-
-
 if st.session_state.get('data_updated', False):
     st.session_state.data_updated = False
     st.rerun()
@@ -172,7 +169,7 @@ col1, col2 = st.columns([2, 1])
 with col1:
     st.markdown("<h2 style='text-align: center;'> 📹 Camera Scanner</2>", unsafe_allow_html=True)
 
-    # Logic với 3 options
+    # Logic với 2 options
     camera_mode = st.radio(
         "Select Camera Mode:",
         ["WebRTC (Local)", "File Upload"],
@@ -202,8 +199,6 @@ with col1:
             },
             async_processing=False
         )
-
-
     else:
         # File upload fallback
         process_uploaded_image()
