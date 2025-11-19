@@ -5,6 +5,7 @@ from datetime import datetime
 from collections import deque
 from utils.qr_storage import load_qr_data
 from Component.Camera.CameraHeader import load_css
+from utils.qr_storage import load_qr_data, reset_daily_data
 
 # Cấu hình trang
 st.set_page_config(
@@ -93,8 +94,8 @@ if 'db_array_position' not in st.session_state:
     st.session_state.db_array_position = 1
 if 'vfd_frequency' not in st.session_state:
     st.session_state.vfd_frequency = 0.0
-if 'start_button_active' not in st.session_state:
-    st.session_state.start_button_active = False
+if 'confirm_reset' not in st.session_state:
+    st.session_state.confirm_reset = False
 # Kiểm tra đăng nhập
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
@@ -338,6 +339,7 @@ if st.session_state.package_queue:
 else:
     st.info("Queue rỗng - chưa có packages")
     # System Info
+
 st.markdown("### 📜 Lịch sử đơn hàng ")
 if st.session_state.log_stack:
     recent_logs = st.session_state.log_stack[-10:]
@@ -371,11 +373,44 @@ with st.sidebar:
             region_short = code_to_region.get(region_code, "Other")
             st.write(f"{i + 1}. ID:{pkg_id} → {region_short}")
 
-    st.markdown("---")
+st.markdown("---")
+    # Reset Data Button
+st.markdown("### 🗑️ Quản lý dữ liệu")
+col_reset, col_info = st.columns([1, 2])
+with col_reset:
+        if st.button("🔄 Reset dữ liệu hôm nay",
+                use_container_width=True,
+                type="secondary"):# Confirmation dialog
+            if 'confirm_reset' not in st.session_state:
+                st.session_state.confirm_reset = False
+                st.session_state.confirm_reset = True
+with col_info:
+    if st.session_state.get('confirm_reset', False):
+        st.warning("⚠️ Bạn có chắc muốn xóa toàn bộ dữ liệu hôm nay?")
+        col_yes, col_no = st.columns(2)
+    with col_yes:
+        if st.button("✅ Xác nhận", use_container_width=True, type="primary"):
+            success, message = reset_daily_data()
+            if success:
+                st.success(message)
+                # Reset session state counters
+                st.session_state.package_counter = 0
+                st.session_state.package_queue.clear()
+                st.session_state.last_qr_count = 0
+                add_to_log_stack("[RESET] Đã xóa toàn bộ dữ liệu hôm nay")
+                st.session_state.confirm_reset = False
+                time.sleep(1)
+                st.rerun()
+            else:
+                st.error(message)
+        with col_no:
+            if st.button("❌ Hủy", use_container_width=True):
+                st.session_state.confirm_reset = False
+                st.rerun()
 
-    if st.button("🔒 Đăng xuất", use_container_width=True):
-        st.session_state.logged_in = False
-        st.session_state.username = ""
-        st.switch_page("pages/Login.py")
+if st.button("🔒 Đăng xuất", use_container_width=True):
+    st.session_state.logged_in = False
+    st.session_state.username = ""
+    st.switch_page("pages/Login.py")
 time.sleep(0.5)
 st.rerun()
