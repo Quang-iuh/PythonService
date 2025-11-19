@@ -93,8 +93,6 @@ if 'db_array_position' not in st.session_state:
     st.session_state.db_array_position = 1
 if 'vfd_frequency' not in st.session_state:
     st.session_state.vfd_frequency = 0.0
-if 'vfd_frequency_speed' not in st.session_state:
-    st.session_state.vfd_frequency_speed = 0
 if 'start_button_active' not in st.session_state:
     st.session_state.start_button_active = False
 # Kiểm tra đăng nhập
@@ -263,7 +261,6 @@ def check_led_timer():
                 # Convert 2 bytes thành integer (big-endian)
                 frequency_raw = int.from_bytes(db4_data[0:2], byteorder='big')
                 frequency = frequency_raw
-                st.session_state.vfd_frequency_speed = db14_value*120/200
                 return frequency
             return 0
         except Exception as e:
@@ -281,10 +278,9 @@ check_led_timer()
 col_info1, col_info2, col_info3= st.columns(3)
 
 with col_info1:
-    st.markdown("### ⚙️ Thông số hệ thống")
+    st.markdown("#### ⚙️ Thông số hệ thống")
     st.metric("Tổng QR đã quét", len(qr_data))
-    st.metric("Packages đã xử lý", st.session_state.package_counter - len(st.session_state.package_queue))
-
+    st.metric("Tổng QR đã gữi cho PLC", st.session_state.package_counter - len(st.session_state.package_queue))
     # Thêm đọc DB14.ID[2]
 
     # PLC Status
@@ -301,9 +297,9 @@ with col_info2:
 
         st.markdown(f"""  
         <div class="active-timer">  
-            <strong>Mã ID: {pkg_id}</strong><br>  
-            <small>Khu vực: {region_name} (Code: {region_code})</small><br>  
-            <small>trạng thái: Chờ tín hiệu từ cảm bien phân loại</small>  
+            <strong>Khay số: {pkg_id}</strong><br>  
+            <small>Khu vực: {region_name} (Mã: {region_code})</small><br>  
+            <small>Trạng thái: Chờ tín hiệu từ cảm bien phân loại</small>  
         </div>  
         """, unsafe_allow_html=True)
     else:
@@ -318,15 +314,10 @@ with col_info3:
         if db14_data and len(db14_data) >= 2:
             db14_value = int.from_bytes(db14_data[0:2], byteorder='big')
             st.session_state.vfd_frequency_speed=db14_value*120/120
-    st.metric(
-        "#### ⚡ Tần số động cơ",
-        f"{db14_value:.0f} Hz",
-        delta=None
-    )
-    st.markdown("#### 🏎️ Tốc độ động cơ")
+    st.markdown("#### ⚡ Tần số động cơ")
     st.metric(
         "",
-        f"{st.session_state.vfd_frequency_speed:.1f} vòng/phút",#.f là lấso61bao nhieyu so sau dau phay
+        f"{db14_value:.0f} Hz",
         delta=None
     )
     # Queue Display
