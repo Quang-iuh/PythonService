@@ -3,6 +3,8 @@ import time
 
 from datetime import datetime
 from collections import deque
+
+from Component.Camera.CameraData_table import render_qr_history_table
 from utils.qr_storage import load_qr_data
 from Component.Camera.CameraHeader import load_css
 from utils.qr_storage import load_qr_data, reset_daily_data
@@ -322,23 +324,22 @@ with col_info3:
         f"{db14_value:.0f} Hz",
         delta=None
     )
+    if st.session_state.package_queue:
+        queue_data = []
+        for i, (pkg_id, region_code) in enumerate(st.session_state.package_queue):
+            queue_data.append({
+                "Số thứ tự": i + 1,
+                "Khay hàng số": region_code,
+                "Vùng miền": region_code_to_name(region_code)
+            })
+
+        st.dataframe(queue_data, use_container_width=True)
+    else:
+        st.info("Chưa có đơn hàng nào...")
     # Queue Display
 st.markdown("<h2 style='text-align: center;'> 🗑️ Quản lý dữ liệu</2>", unsafe_allow_html=True)
 st.markdown("---")
-st.markdown("<h3 style='text-align: center;'> 📜 Lịch sử đơn hàng</3>", unsafe_allow_html=True)
-if st.session_state.package_queue:
-    queue_data = []
-    for i, (pkg_id, region_code) in enumerate(st.session_state.package_queue):
-        queue_data.append({
-            "Số thứ tự": i + 1,
-            "Khay hàng số": region_code,
-            "Vùng miền": region_code_to_name(region_code),
-            "Trạng thái": "Chờ tín hiệu cảm biến phân loại"
-        })
-
-    st.dataframe(queue_data, use_container_width=True)
-else:
-    st.info("Chưa có đơn hàng nào...")
+render_qr_history_table(qr_data)
 
  # Reset Data Button
 
@@ -366,12 +367,13 @@ else:
     st.error("❌ Lỗi khi reset dữ liệu")
 
 # Sidebar
+# Sidebar
 with st.sidebar:
-    st.markdown(f"""  
-    <div class="sidebar-section">  
-        <h3>👤 Người dùng</h3>  
-        <p>Xin chào, <strong>{st.session_state.get('username', 'User')}</strong></p>  
-    </div>  
+    st.markdown(f"""    
+    <div class="sidebar-section">    
+        <h3>👤 Người dùng</h3>    
+        <p>Xin chào, <strong>{st.session_state.get('username', 'User')}</strong></p>    
+    </div>    
     """, unsafe_allow_html=True)
 
     if st.session_state.package_queue:
@@ -380,9 +382,12 @@ with st.sidebar:
             code_to_region = {1: "MN", 2: "MB", 3: "MT", 0: "Other"}
             region_short = code_to_region.get(region_code, "Other")
             st.write(f"{i + 1}. ID:{pkg_id} → {region_short}")
+
     if st.button("🔒 Đăng xuất", use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.username = ""
         st.switch_page("pages/Login.py")
+
+    # Auto-refresh loop - ĐẶT Ở NGOÀI SIDEBAR
 time.sleep(0.5)
 st.rerun()
