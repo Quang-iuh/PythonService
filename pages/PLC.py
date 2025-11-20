@@ -328,14 +328,12 @@ st.markdown("---")
 st.markdown("<h3 style='text-align: center;'> 📜 Lịch sử đơn hàng</3>", unsafe_allow_html=True)
 if st.session_state.package_queue:
     queue_data = []
-
     for i, (pkg_id, region_code) in enumerate(st.session_state.package_queue):
         queue_data.append({
-            "Position": i + 1,
-            "Package ID": pkg_id,
-            "Region Code": region_code,
-            "Region": region_code_to_name(region_code),
-            "Status": "Chờ tín hiệu cảm biến phân loại"
+            "Số thứ tự": i + 1,
+            "Khay hàng số": region_code,
+            "Vùng miền": region_code_to_name(region_code),
+            "Trạng thái": "Chờ tín hiệu cảm biến phân loại"
         })
 
     st.dataframe(queue_data, use_container_width=True)
@@ -348,17 +346,24 @@ if st.button("🔄 Reset dữ liệu lưu trữ", use_container_width=True, type
     from utils.qr_storage import reset_daily_data
 
     if reset_daily_data():
-        # Reset session state
+            # Reset session state
         st.session_state.package_counter = 0
         st.session_state.package_queue.clear()
         st.session_state.last_qr_count = 0
         st.session_state.log_stack = []
+        st.session_state.db_array_position = 1
 
-        st.success("✅ Đã reset toàn bộ dữ liệu!")
-        st.session_state.show_reset_confirm = False
-        st.rerun()
+        # Verify PLC connection
+    if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+        add_to_log_stack("[RESET] Đã reset dữ liệu - PLC vẫn kết nối")
     else:
-        st.error("❌ Lỗi khi reset dữ liệu")
+        add_to_log_stack("[RESET] Đã reset dữ liệu - Cảnh báo: PLC chưa kết nối")
+
+    st.success("✅ Đã reset toàn bộ dữ liệu!")
+    time.sleep(0.5)
+    st.rerun()
+else:
+    st.error("❌ Lỗi khi reset dữ liệu")
 
 # Sidebar
 with st.sidebar:
@@ -379,5 +384,5 @@ with st.sidebar:
         st.session_state.logged_in = False
         st.session_state.username = ""
         st.switch_page("pages/Login.py")
-        time.sleep(0.5)
-        st.rerun()
+time.sleep(0.5)
+st.rerun()
