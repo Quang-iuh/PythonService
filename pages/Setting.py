@@ -2,12 +2,12 @@ import streamlit as st
 import snap7
 import struct
 
-from pip._internal import resolution
-
 from Component.Camera.CameraHeader import load_css
 
 
 # Cấu hình trang
+
+
 st.set_page_config(
     page_title="⚙️ Cài đặt hệ thống",
     layout="wide",
@@ -97,7 +97,7 @@ class PLCManager:
             return True, "Kết nối PLC S7 thành công"
         except Exception as e:
             self.connected = False
-            return False, f"Lỗi kết nối S7: {str(e)}"
+            return False, f"Lỗi kết nối với PLC: {str(e)}"
         except Snap7Exception as e:
             self.connected = False
             return False, f"Lỗi Snap7: {str(e)}"
@@ -161,7 +161,7 @@ class PLCManager:
 st.markdown("""      
 <div class="main-header">      
     <h1>⚙️ CÀI ĐẶT HỆ THỐNG</h1>      
-    <p>Điều chỉnh thông số và cấu hình ứng dụng</p>      
+    <p></p>      
 </div>      
 """, unsafe_allow_html=True)
 
@@ -171,8 +171,6 @@ if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.stop()
 
 # Khởi tạo session state
-if "grayscale" not in st.session_state:
-    st.session_state.grayscale = False
 if "resolution" not in st.session_state:
     st.session_state.resolution = (1280, 720)
 if 'zoom_level' not in st.session_state:
@@ -203,18 +201,12 @@ with col1:
     </div>        
     """, unsafe_allow_html=True)
 
-    st.session_state.grayscale = st.checkbox(
-        "🎨 Bật chế độ Grayscale",
-        value=st.session_state.grayscale,
-        help="Chuyển đổi hình ảnh sang màu xám"
-    )
-
     # FPS Selector
-    st.markdown("**🎬 Frame Rate (FPS)**")
+    st.markdown("**🎬 Số khung hình trên giây (FPS)**")
     fps_options = {
-        "15 FPS (Tiết kiệm)": 15,
-        "30 FPS (Chuẩn)": 30,
-        "60 FPS (Cao)": 60
+        "15 FPS ": 15,
+        "30 FPS ": 30,
+        "60 FPS ": 60
     }
 
     current_fps_label = f"{st.session_state.camera_fps} FPS"
@@ -290,7 +282,7 @@ with col2:
     col_connect, col_disconnect = st.columns(2)
 
     with col_connect:
-        if st.button("🔗 Kết nối PLC", use_container_width=True):
+        if st.button("🔗 Kết nối PLC", use_container_width=True,type=("primary")):
             if 'plc_manager' not in st.session_state:
                 st.session_state.plc_manager = PLCManager()
 
@@ -324,6 +316,7 @@ with col2:
                 success = st.session_state.plc_manager.write_db(14, 0, 2)
                 if success:
                     st.success("✅ Connection successful!")
+                    st.switch_page("pages/PLC.py")
                 else:
                     st.error("❌Error to connect")
     else:
@@ -331,11 +324,8 @@ with col2:
 
     # Reset button
 if st.button("🔄 Reset về mặc định", use_container_width=True):
-    st.session_state.grayscale = False
-    st.session_state.zoom_level = 1.0
     st.session_state.resolution = (1280, 720)
     st.session_state.camera_fps = 30  # Reset FPS về 30
-    st.session_state.speed_motor = 2.5
     st.session_state.plc_connected = False
     st.session_state.plc_ip = "192.168.0.1"
     st.session_state.plc_rack = 0
@@ -343,6 +333,20 @@ if st.button("🔄 Reset về mặc định", use_container_width=True):
     st.session_state.FPS=24
     st.success("Đã reset về cài đặt mặc định!")
     st.rerun()
+
+col1_b, col2_b, col3_b = st.columns([1, 1, 1])
+with col1_b:
+    if st.button("Home", use_container_width=True):
+        st.switch_page("Home.py")
+with col2_b:
+    if st.button("Camera", use_container_width=True):
+        st.switch_page("pages/camera.py")
+with col3_b:
+    if st.button("Thống kê", use_container_width=True):
+        st.switch_page("pages/Dashboard.py")
+
+
+
 
 # Sidebar
 with st.sidebar:
@@ -354,9 +358,9 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     im_co1, im_co2 = st.columns(2)
     with im_co1:
-        st.image("image/images2.jfif", width=50)
+        st.image("image/images2.jfif", width=80)
     with im_co2:
-        st.image("image/images.png", width=50)
+        st.image("image/images.png", width=80)
 
     if st.button("🔒 Đăng xuất", use_container_width=True):
         st.session_state.logged_in = False

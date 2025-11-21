@@ -1,13 +1,13 @@
 import streamlit as st
 import time
-
 from datetime import datetime
 from collections import deque
 
+from click import style
+
 from Component.Camera.CameraData_table import render_qr_history_table
-from utils.qr_storage import load_qr_data
-from Component.Camera.CameraHeader import load_css
 from utils.qr_storage import load_qr_data, reset_daily_data
+from Component.Camera.CameraHeader import load_css
 
 # Cấu hình trang
 st.set_page_config(
@@ -267,24 +267,23 @@ with col_info3:
         if db14_data and len(db14_data) >= 2:
             db14_value = int.from_bytes(db14_data[0:2], byteorder='big')
             st.session_state.vfd_frequency_speed=db14_value*120/120
-    st.markdown("#### ⚡ Tần số động cơ")
+    st.markdown("#### ⚡ Tần số động cơ", unsafe_allow_html=True)
     st.metric(
-        "",
-        f"{db14_value:.0f} Hz",
-        delta=None
+        label=(""),
+        value=f"{db14_value:.0f} Hz"
     )
-    if st.session_state.package_queue:
-        queue_data = []
-        for i, (pkg_id, region_code) in enumerate(st.session_state.package_queue):
-            queue_data.append({
-                "Số thứ tự": i + 1,
-                "Khay hàng số": region_code,
-                "Vùng miền": region_code_to_name(region_code)
-            })
+if st.session_state.package_queue:
+    queue_data = []
+    for i, (pkg_id, region_code) in enumerate(st.session_state.package_queue):
+        queue_data.append({
+            "Số thứ tự": i + 1,
+            "Khay hàng số": region_code,
+            "Vùng miền": region_code_to_name(region_code)
+        })
 
-        st.dataframe(queue_data, use_container_width=True)
-    else:
-        st.info("Chưa có đơn hàng nào...")
+    st.dataframe(queue_data, use_container_width=True)
+else:
+    st.info("Chưa có đơn hàng nào...")
     # Queue Display
 st.markdown("<h2 style='text-align: center;'> 🗑️ Quản lý dữ liệu</2>", unsafe_allow_html=True)
 st.markdown("---")
@@ -315,9 +314,21 @@ if st.button("🔄 Reset dữ liệu lưu trữ", use_container_width=True, type
 else:
     st.error("❌ Lỗi khi reset dữ liệu")
 
-# Sidebar
+
 # Sidebar
 with st.sidebar:
+    st.markdown(f"""  
+        <div class="sidebar-section">  
+            <h3>👤 Người dùng</h3>  
+            <p>Xin chào, <strong>{st.session_state.get('username', 'User')}</strong></p>  
+        </div>  
+        """, unsafe_allow_html=True)
+    im_co1, im_co2 = st.columns(2)
+    with im_co1:
+        st.image("image/images2.jfif", width=80)
+    with im_co2:
+        st.image("image/images.png", width=80)
+
     st.markdown(f"""    
     <div class="sidebar-section">    
         <h3>👤 Người dùng</h3>    

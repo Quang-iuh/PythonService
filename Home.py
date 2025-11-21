@@ -140,26 +140,6 @@ with bu_col4:
     if st.button("⚙️ Setting", use_container_width=True, type="primary"):
         st.switch_page("pages/Setting.py")
     # Quick Navigation
-nav_col1, nav_col2= st.columns(2)
-
-with nav_col1:
-    if st.button("📋 Hướng dẫn", use_container_width=True):
-        with st.expander("📖 Hướng dẫn sử dụng", expanded=True):
-            st.markdown("""  
-            **🔍 Camera Scanner:**  
-            1. Click "Mở Camera" → Cấp quyền camera  
-            2. Đưa QR vào khung hình → Tự động phân loại  
-
-            **🚦 PLC Control:**  
-            1. Monitor LED 3 khu vực phân loại  
-            2. Xem timing và delay của từng miền  
-            """)
-
-with nav_col2:
-    if st.button("🔒 Đăng xuất", use_container_width=True, type="secondary"):
-        st.session_state.logged_in = False
-        st.session_state.username = ""
-        st.rerun()
 with st.sidebar:
     st.markdown(f"""  
     <div class="sidebar-section">  

@@ -1,3 +1,5 @@
+import time
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -9,6 +11,8 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+def add_to_log_stack(param):
+    pass
 # Load CSS
 load_css("Led_BlinkStyle.css")
 st.markdown("""  
@@ -166,6 +170,9 @@ with col4:
     """, unsafe_allow_html=True)
 st.markdown('<div class="chart-container">', unsafe_allow_html=True)
 # Layout 2 cột cho biểu đồ
+
+
+
 if qr_history:
     col_chart1, col_chart2 = st.columns(2)
 
@@ -245,6 +252,39 @@ if qr_history:
 
 else:
     st.info("🔍 Chưa có dữ liệu nào được quét. Vui lòng trở về trang Camera để quét mã.")
+
+
+
+col1_f,col2_f,col3_f = st.columns(3)
+with col1_f:
+    if st.button("Home", use_container_width=True, type=("primary"), width=("stretch")):
+        st.switch_page("Home.py")
+with col2_f:
+    if st.button("Setting", use_container_width=True, type=("primary"), width=("stretch")):
+        st.switch_page("pages/Setting.py")
+with col3_f:
+    if st.button("🔄 Reset dữ liệu lưu trữ", use_container_width=True, type="secondary"):
+        from utils.qr_storage import reset_daily_data
+
+        if reset_daily_data():
+                # Reset session state
+            st.session_state.package_counter = 0
+            st.session_state.package_queue.clear()
+            st.session_state.last_qr_count = 0
+            st.session_state.log_stack = []
+            st.session_state.db_array_position = 1
+
+        # Verify PLC connection
+        if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+            add_to_log_stack("[RESET] Đã reset dữ liệu - PLC vẫn kết nối")
+        else:
+            add_to_log_stack("[RESET] Đã reset dữ liệu - Cảnh báo: PLC chưa kết nối")
+
+        st.success("✅ Đã reset toàn bộ dữ liệu!")
+        time.sleep(0.5)
+        st.rerun()
+    else:
+        st.error("❌ Lỗi khi reset dữ liệu")
 
 # Sidebar
 with st.sidebar:
