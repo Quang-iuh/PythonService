@@ -38,15 +38,17 @@ class VideoProcessor(VideoProcessorBase):
         data, points, _ = self.detector.detectAndDecode(img)
 
         if points is not None and data:
+            # Vẽ khung
             points = points.astype(int).reshape(-1, 2)
             for j in range(len(points)):
                 pt1 = tuple(points[j])
                 pt2 = tuple(points[(j + 1) % len(points)])
                 cv2.line(img, pt1, pt2, (0, 255, 0), 3)
 
-                # Process QR - KHÔNG set data_updated ở đây
+                # Process QR
             process_qr_detection(data)
 
+            # Hiển thị text
             cv2.rectangle(img, (points[0][0], points[0][1] - 35),
                           (points[0][0] + len(data) * 12, points[0][1] - 5),
                           (0, 255, 0), -1)
@@ -92,7 +94,6 @@ with col1:
     )
 
 with col2:
-    # Metrics sẽ tự động update mỗi lần page render
     render_system_metrics(total_scans, last_qr)
 
 # Render data table
@@ -101,8 +102,7 @@ render_qr_history_table(qr_data)
 # Render sidebar
 render_sidebar(st.session_state.username)
 
-# ✅ THÊM AUTO-REFRESH Ở CUỐI
-# Chỉ refresh khi camera đang chạy
+# Auto-refresh để cập nhật UI khi có QR mới
 if ctx.state.playing:
-    time.sleep(1)  # Refresh mỗi 2 giây
+    time.sleep(2)  # Refresh mỗi 2 giây
     st.rerun()
