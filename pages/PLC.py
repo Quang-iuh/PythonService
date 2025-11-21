@@ -26,30 +26,7 @@ st.markdown("""
     color: white;  
     text-align: center;  
     margin-bottom: 2rem;  
-}  
-.led-container {  
-    display: flex;  
-    justify-content: center;  
-    align-items: center;  
-    margin: 20px 0;  
-}  
-.led-circle {  
-    width: 80px;  
-    height: 80px;  
-    border-radius: 50%;  
-    border: 3px solid #333;  
-    margin: 0 20px;  
-    display: flex;  
-    align-items: center;  
-    justify-content: center;  
-    font-weight: bold;  
-    color: white;  
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);  
-}  
-.led-off { background-color: #666; }  
-.led-red { background-color: #ff4444; box-shadow: 0 0 20px #ff4444; }  
-.led-yellow { background-color: #ffdd44; box-shadow: 0 0 20px #ffdd44; }  
-.led-green { background-color: #44ff44; box-shadow: 0 0 20px #44ff44; }  
+}   
 .region-info {  
     text-align: center;  
     margin-top: 10px;  
@@ -78,20 +55,12 @@ if 'package_counter' not in st.session_state:
     st.session_state.package_counter = 0
 if 'package_queue' not in st.session_state:
     st.session_state.package_queue = deque()  # FIFO queue
-if 'led_status' not in st.session_state:
-    st.session_state.led_status = {
-        "Miền Bắc": False,
-        "Miền Trung": False,
-        "Miền Nam": False
-    }
 if 'log_stack' not in st.session_state:
     st.session_state.log_stack = []
 if 'last_qr_count' not in st.session_state:
     st.session_state.last_qr_count = 0
 if 'processing_package' not in st.session_state:
     st.session_state.processing_package = None
-if 'led_timer' not in st.session_state:
-    st.session_state.led_timer = None
 if 'db_array_position' not in st.session_state:
     st.session_state.db_array_position = 1
 if 'vfd_frequency' not in st.session_state:
@@ -229,26 +198,8 @@ def process_cb2_sensor():
                 if st.session_state.db_array_position > 100:
                     st.session_state.db_array_position = 0
                     add_to_log_stack("[ARRAY] Reset position to 0")
-
-                    # Kích hoạt LED
-                if region_name in st.session_state.led_status:
-                    st.session_state.led_status[region_name] = True
-                    st.session_state.led_timer = time.time() + 3.0
-                    add_to_log_stack(f"[LED ON] {region_name} activated")
-
     except Exception as e:
         add_to_log_stack(f"[ERROR] Lỗi đọc DB14[0]: {str(e)}")
-
-def check_led_timer():
-    """Kiểm tra và tắt LED sau thời gian quy định"""
-    if hasattr(st.session_state, 'led_timer') and st.session_state.led_timer:
-        if time.time() >= st.session_state.led_timer:
-            # Tắt tất cả LED
-            for region in st.session_state.led_status:
-                if st.session_state.led_status[region]:
-                    st.session_state.led_status[region] = False
-                    add_to_log_stack(f"[LED OFF] {region} tắt")
-            st.session_state.led_timer = None
 
         # Xử lý packages mới
        # Đọc tần số biến tần từ DB4
@@ -275,8 +226,6 @@ process_new_packages()
 # Xử lý CB2 sensors
 process_cb2_sensor()
 
-# Kiểm tra LED timer
-check_led_timer()
 
 col_info1, col_info2, col_info3= st.columns(3)
 
