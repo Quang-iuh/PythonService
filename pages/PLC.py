@@ -1,3 +1,5 @@
+from operator import iconcat
+
 import streamlit as st
 import time
 from datetime import datetime
@@ -272,6 +274,7 @@ with col_info3:
         label=(""),
         value=f"{db14_value:.0f} Hz"
     )
+st.markdown("<h3 style='text-align: center;'> 🚚Hàng đang được xử lý</3>",unsafe_allow_html=True)
 if st.session_state.package_queue:
     queue_data = []
     for i, (pkg_id, region_code) in enumerate(st.session_state.package_queue):
