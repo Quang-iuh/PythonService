@@ -1,6 +1,4 @@
 import streamlit as st
-
-
 def check_login():
     """Kiểm tra trạng thái đăng nhập"""
     if 'logged_in' not in st.session_state or not st.session_state.logged_in:

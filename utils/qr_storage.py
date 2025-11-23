@@ -16,24 +16,18 @@ def get_daily_filename(date=None):
         date = datetime.now()
     return f"./qr_data_{date.strftime('%Y-%m-%d')}.json"
 
-
 def save_qr_data(qr_entry):
     """Lưu QR data với Package ID và Region Code"""
-    # Đảm bảo có Package ID và Region Code cho counter-based approach
-    if 'package_id' not in qr_entry:
-        qr_entry['package_id'] = 0
     if 'region_code' not in qr_entry:
         # Auto-generate region code từ region name nếu chưa có
         region_mapping = {
             "Miền Nam": 1,
             "Miền Bắc": 2,
             "Miền Trung": 3,
-            "Miền khác": 0
+            "Miền khác": 4
         }
         qr_entry['region_code'] = region_mapping.get(qr_entry.get('region', ''), 0)
-
     data_file = get_daily_filename()
-
     if os.path.exists(data_file):
         try:
             with open(data_file, 'r', encoding='utf-8') as f:
@@ -43,12 +37,9 @@ def save_qr_data(qr_entry):
             data = []
     else:
         data = []
-
     data.append(qr_entry)
-
     with open(data_file, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
-
 
 def load_qr_data(date=None):
     """Load QR data theo ngày"""
@@ -67,7 +58,6 @@ def load_qr_data(date=None):
             print(f"Error loading QR data: {e}")
             return []
     return []
-
 
 def get_available_dates():
     """Lấy danh sách ngày có data"""

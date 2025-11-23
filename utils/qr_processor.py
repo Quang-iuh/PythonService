@@ -1,4 +1,4 @@
-import cv2
+
 import pandas as pd
 import logging
 from utils.qr_storage import save_qr_data, get_last_qr
@@ -26,7 +26,7 @@ def process_qr_detection(data: str) -> bool:
             qr_region = classify_qr(data)
             qr_entry = {
                 "data": data,
-                "type": "QRCODE",
+                "type": "QR_code",
                 "time": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "region": qr_region,
             }
