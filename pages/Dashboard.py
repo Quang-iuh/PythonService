@@ -5,6 +5,18 @@ import pandas as pd
 import plotly.express as px
 from utils.qr_storage import load_qr_data, get_available_dates
 from Component.Camera.CameraHeader import load_css
+
+# Kiểm tra đăng nhập
+if 'logged_in' not in st.session_state or not st.session_state.logged_in:
+    st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
+    st.stop()
+
+col_h1,col_h2 = st.columns([1,3])
+with col_h1:
+    if st.button("⬅️ Quay về", use_container_width=True, type="secondary"):
+        st.switch_page("Home.py")
+with col_h2:
+    st.markdown("")
 # Cấu hình trang
 st.set_page_config(
     page_title="📊 Thống kê & Báo cáo",
@@ -80,10 +92,6 @@ st.markdown("""
     <h1>📊 THỐNG KÊ & BÁO CÁO</h1>    
 </div>        
 """, unsafe_allow_html=True)
-# Kiểm tra đăng nhập
-if 'logged_in' not in st.session_state or not st.session_state.logged_in:
-    st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
-    st.stop()
 
 # Date Filter
 nav_col1, nav_col2= st.columns(2)
@@ -257,22 +265,30 @@ else:
 
 col1_f,col2_f,col3_f = st.columns(3)
 with col1_f:
-    if st.button("Home", use_container_width=True, type=("primary"), width=("stretch")):
-        st.switch_page("Home.py")
-with col2_f:
-    if st.button("Setting", use_container_width=True, type=("primary"), width=("stretch")):
-        st.switch_page("pages/Setting.py")
-with col3_f:
     if st.button("🔄 Reset dữ liệu lưu trữ", use_container_width=True, type="secondary"):
         from utils.qr_storage import reset_daily_data
 
         # Ghi số 1 vào DB14.1 (offset 2, vì DB14.0 là offset 0-1)
         if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+            # Tạo bytearray chứa 202 bytes (101 positions × 2 bytes) = tất cả là 0
+            zero_array = bytearray(202)
+
+            # Ghi 1 lần cho mỗi DB thay vì 101 lần
+            st.session_state.plc_manager.client.db_write(1, 0, zero_array)
+            add_to_log_stack("Đã reset dữ liệu danh sách 1")
+
+            st.session_state.plc_manager.client.db_write(2, 0, zero_array)
+            add_to_log_stack("Đã reset dữ liệu danh sách 2")
+
+            st.session_state.plc_manager.client.db_write(3, 0, zero_array)
+            add_to_log_stack("Đã reset dữ liệu danh sách 3")
+
+            # Ghi tín hiệu reset
             success = st.session_state.plc_manager.write_db(14, 2, 1)
             if success:
                 add_to_log_stack("[PLC] Đã ghi DB14.1 = 1 (Reset signal)")
             else:
-                st.error("❌ Lỗi ghi DB14.1")
+                st.error("❌ Lỗi reset bộ nhớ..., Xem lại kết nối dây")
                 st.stop()
 
         if reset_daily_data():
@@ -296,6 +312,10 @@ with col3_f:
             st.rerun()
         else:
             st.error("❌ Lỗi khi reset dữ liệu")
+with col2_f:
+    st.markdown("")
+with col3_f:
+    st.markdown("")
 
 # Sidebar
 with st.sidebar:

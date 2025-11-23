@@ -4,12 +4,14 @@ import streamlit as st
 import time
 from datetime import datetime
 from collections import deque
-
-from click import style
-
 from Component.Camera.CameraData_table import render_qr_history_table
 from utils.qr_storage import load_qr_data, reset_daily_data
 from Component.Camera.CameraHeader import load_css
+
+# Kiểm tra đăng nhập
+if 'logged_in' not in st.session_state or not st.session_state.logged_in:
+    st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
+    st.stop()
 
 col_h1,col_h2 = st.columns([1,3])
 with col_h1:
@@ -76,10 +78,6 @@ if 'vfd_frequency' not in st.session_state:
 if 'confirm_reset' not in st.session_state:
     st.session_state.confirm_reset = False
 
-# Kiểm tra đăng nhập
-if 'logged_in' not in st.session_state or not st.session_state.logged_in:
-    st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
-    st.stop()
 
 # Header
 st.markdown("""  
@@ -305,11 +303,25 @@ if st.button("🔄 Reset dữ liệu lưu trữ", use_container_width=True, type
 
     # Ghi số 1 vào DB14.1 (offset 2, vì DB14.0 là offset 0-1)
     if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+        # Tạo bytearray chứa 202 bytes (101 positions × 2 bytes) = tất cả là 0
+        zero_array = bytearray(202)
+
+        # Ghi 1 lần cho mỗi DB thay vì 101 lần
+        st.session_state.plc_manager.client.db_write(1, 0, zero_array)
+        add_to_log_stack("Đã reset dữ liệu danh sách 1")
+
+        st.session_state.plc_manager.client.db_write(2, 0, zero_array)
+        add_to_log_stack("Đã reset dữ liệu danh sách 2")
+
+        st.session_state.plc_manager.client.db_write(3, 0, zero_array)
+        add_to_log_stack("Đã reset dữ liệu danh sách 3")
+
+        # Ghi tín hiệu reset
         success = st.session_state.plc_manager.write_db(14, 2, 1)
         if success:
             add_to_log_stack("[PLC] Đã ghi DB14.1 = 1 (Reset signal)")
         else:
-            st.error("❌ Lỗi ghi DB14.1")
+            st.error("❌ Lỗi reset bộ nhớ..., Xem lại kết nối dây")
             st.stop()
 
     if reset_daily_data():

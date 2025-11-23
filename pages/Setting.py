@@ -7,12 +7,6 @@ from Component.Camera.CameraHeader import load_css
 
 # Cấu hình trang
 
-col_h1,col_h2 = st.columns([1,3])
-with col_h1:
-    if st.button("⬅️ Quay về", use_container_width=True, type="secondary"):
-        st.switch_page("Home.py")
-with col_h2:
-    st.markdown("")
 
 st.set_page_config(
     page_title="⚙️ Cài đặt hệ thống",
@@ -162,8 +156,17 @@ class PLCManager:
             "slot": self.slot
         }
     # Header chính
+# Kiểm tra đăng nhập
+if 'logged_in' not in st.session_state or not st.session_state.logged_in:
+    st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
+    st.stop()
 
-
+col_h1,col_h2 = st.columns([1,3])
+with col_h1:
+    if st.button("⬅️ Quay về", use_container_width=True, type="secondary"):
+        st.switch_page("Home.py")
+with col_h2:
+    st.markdown("")
 st.markdown("""      
 <div class="main-header">      
     <h1>⚙️ CÀI ĐẶT HỆ THỐNG</h1>      
@@ -171,10 +174,7 @@ st.markdown("""
 </div>      
 """, unsafe_allow_html=True)
 
-# Kiểm tra đăng nhập
-if 'logged_in' not in st.session_state or not st.session_state.logged_in:
-    st.error("🔒 Vui lòng đăng nhập trước khi truy cập trang này.")
-    st.stop()
+
 
 # Khởi tạo session state
 if "resolution" not in st.session_state:
@@ -338,20 +338,6 @@ if st.button("🔄 Reset về mặc định", use_container_width=True):
     st.session_state.FPS=24
     st.success("Đã reset về cài đặt mặc định!")
     st.rerun()
-
-col1_b, col2_b, col3_b = st.columns([1, 2, 1])
-with col1_b:
-    if st.button("Camera", use_container_width=True, type=("primary")):
-        st.switch_page("pages/camera.py")
-with col2_b:
-    st.markdown("")
-with col3_b:
-    if st.button("PLC", use_container_width=True, type=("primary")):
-        st.switch_page("pages/PLC.py")
-
-
-
-
 
 # Sidebar
 with st.sidebar:

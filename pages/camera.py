@@ -109,8 +109,6 @@ with col1:
     render_qr_history_table(qr_data)
 with col2:
     render_system_metrics(total_scans, last_qr)
-    if st.button("Setting", use_container_width=True, type=("primary"), width=("stretch")):
-        switch_page("pages/Setting.py")
     if st.button("Thống kê", use_container_width=True, type=("primary"), width=("stretch")):
         switch_page("pages/Dashboard.py")
     if st.button("🔄 Reset dữ liệu lưu trữ", use_container_width=True, type="secondary"):
@@ -118,12 +116,48 @@ with col2:
 
         # Ghi số 1 vào DB14.1 (offset 2, vì DB14.0 là offset 0-1)
         if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+            # Tạo bytearray chứa 202 bytes (101 positions × 2 bytes) = tất cả là 0
+            zero_array = bytearray(202)
+
+            # Ghi 1 lần cho mỗi DB thay vì 101 lần
+            st.session_state.plc_manager.client.db_write(1, 0, zero_array)
+            add_to_log_stack("Đã reset dữ liệu danh sách 1")
+
+            st.session_state.plc_manager.client.db_write(2, 0, zero_array)
+            add_to_log_stack("Đã reset dữ liệu danh sách 2")
+
+            st.session_state.plc_manager.client.db_write(3, 0, zero_array)
+            add_to_log_stack("Đã reset dữ liệu danh sách 3")
+
+            # Ghi tín hiệu reset
             success = st.session_state.plc_manager.write_db(14, 2, 1)
             if success:
                 add_to_log_stack("[PLC] Đã ghi DB14.1 = 1 (Reset signal)")
             else:
-                st.error("❌ Lỗi ghi DB14.1")
+                st.error("❌ Lỗi reset bộ nhớ..., Xem lại kết nối dây")
                 st.stop()
+
+        if reset_daily_data():
+            # Reset session state
+            st.session_state.package_counter = 0
+            st.session_state.package_queue.clear()
+            st.session_state.last_qr_count = 0
+            st.session_state.log_stack = []
+            st.session_state.db_array_position = 1
+
+            # Ghi số 0 vào DB14.1 sau khi reset xong
+            if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+                success = st.session_state.plc_manager.write_db(14, 2, 0)
+                if success:
+                    add_to_log_stack("[PLC] Đã ghi DB14.1 = 0 (Reset complete)")
+                else:
+                    st.warning("⚠️ Không thể reset DB14.1 về 0")
+
+            st.success("✅ Đã reset toàn bộ dữ liệu!")
+            time.sleep(0.5)
+            st.rerun()
+        else:
+            st.error("❌ Lỗi khi reset dữ liệu")
 
         if reset_daily_data():
             # Reset session state
