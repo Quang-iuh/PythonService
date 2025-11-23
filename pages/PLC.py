@@ -11,6 +11,12 @@ from Component.Camera.CameraData_table import render_qr_history_table
 from utils.qr_storage import load_qr_data, reset_daily_data
 from Component.Camera.CameraHeader import load_css
 
+col_h1,col_h2 = st.columns([1,3])
+with col_h1:
+    if st.button("⬅️ Quay về", use_container_width=True, type="secondary"):
+        st.switch_page("Home.py")
+with col_h2:
+    st.markdown("")
 # Cấu hình trang
 st.set_page_config(
     page_title="PLC",
@@ -297,25 +303,36 @@ render_qr_history_table(qr_data)
 if st.button("🔄 Reset dữ liệu lưu trữ", use_container_width=True, type="secondary"):
     from utils.qr_storage import reset_daily_data
 
+    # Ghi số 1 vào DB14.1 (offset 2, vì DB14.0 là offset 0-1)
+    if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+        success = st.session_state.plc_manager.write_db(14, 2, 1)
+        if success:
+            add_to_log_stack("[PLC] Đã ghi DB14.1 = 1 (Reset signal)")
+        else:
+            st.error("❌ Lỗi ghi DB14.1")
+            st.stop()
+
     if reset_daily_data():
-            # Reset session state
+        # Reset session state
         st.session_state.package_counter = 0
         st.session_state.package_queue.clear()
         st.session_state.last_qr_count = 0
         st.session_state.log_stack = []
         st.session_state.db_array_position = 1
 
-        # Verify PLC connection
-    if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-        add_to_log_stack("[RESET] Đã reset dữ liệu - PLC vẫn kết nối")
-    else:
-        add_to_log_stack("[RESET] Đã reset dữ liệu - Cảnh báo: PLC chưa kết nối")
+        # Ghi số 0 vào DB14.1 sau khi reset xong
+        if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+            success = st.session_state.plc_manager.write_db(14, 2, 0)
+            if success:
+                add_to_log_stack("[PLC] Đã ghi DB14.1 = 0 (Reset complete)")
+            else:
+                st.warning("⚠️ Không thể reset DB14.1 về 0")
 
-    st.success("✅ Đã reset toàn bộ dữ liệu!")
-    time.sleep(0.5)
-    st.rerun()
-else:
-    st.error("❌ Lỗi khi reset dữ liệu")
+        st.success("✅ Đã reset toàn bộ dữ liệu!")
+        time.sleep(0.5)
+        st.rerun()
+    else:
+        st.error("❌ Lỗi khi reset dữ liệu")
 
 
 # Sidebar
@@ -326,19 +343,13 @@ with st.sidebar:
             <p>Xin chào, <strong>{st.session_state.get('username', 'User')}</strong></p>  
         </div>  
         """, unsafe_allow_html=True)
-    im_co1, im_co2 = st.columns(2)
-    with im_co1:
-        st.image("image/images2.jfif", width=80)
-    with im_co2:
-        st.image("image/images.png", width=80)
-
-    st.markdown(f"""    
-    <div class="sidebar-section">    
-        <h3>👤 Người dùng</h3>    
-        <p>Xin chào, <strong>{st.session_state.get('username', 'User')}</strong></p>    
-    </div>    
-    """, unsafe_allow_html=True)
-
+    col1_im, col2_im, col3_im = st.columns([1, 2, 1])
+    with col1_im:
+        st.markdown("")
+    with col2_im:
+        st.image("image/Logo.png", width=120)
+    with col3_im:
+        st.markdown("")
     if st.session_state.package_queue:
         st.write("**Next 3 in Queue:**")
         for i, (pkg_id, region_code) in enumerate(list(st.session_state.package_queue)[:3]):

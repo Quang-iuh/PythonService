@@ -147,11 +147,13 @@ with st.sidebar:
         <p>Xin chào, <strong>{st.session_state.get('username', 'User')}</strong></p>  
     </div>  
     """, unsafe_allow_html=True)
-    im_co1, im_co2 = st.columns(2)
-    with im_co1:
-        st.image("image/images2.jfif", width=70)
-    with im_co2:
-        st.image("image/images.png", width=70)
+    col1_im, col2_im, col3_im = st.columns([1, 2, 1])
+    with col1_im:
+        st.markdown("")
+    with col2_im:
+        st.image("image/Logo.png", width=120)
+    with col3_im:
+        st.markdown("")
     if st.button("Đăng xuat",use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.username = ""

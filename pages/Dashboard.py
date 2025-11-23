@@ -115,9 +115,9 @@ with nav_col2:
 total_scans = len(qr_history)
 
 # Tách dữ liệu theo miền
+unique_south = {item["data"] for item in qr_history if item["region"] == "Miền Nam"}
 unique_north = {item["data"] for item in qr_history if item["region"] == "Miền Bắc"}
 unique_central = {item["data"] for item in qr_history if item["region"] == "Miền Trung"}
-unique_south = {item["data"] for item in qr_history if item["region"] == "Miền Nam"}
 unique_other = {item["data"] for item in qr_history if item["region"] == "Miền khác"}
 
 unique_scans = len(unique_north | unique_central | unique_south | unique_other)
@@ -153,7 +153,7 @@ with col3:
     </div>        
     """, unsafe_allow_html=True)
 
-with col2:
+with col4:
     st.markdown(f"""        
     <div class="metric-card">           
         <div class="metric-label">Miền Trung</div>       
@@ -161,7 +161,7 @@ with col2:
     </div>        
     """, unsafe_allow_html=True)
 
-with col4:
+with col2:
     st.markdown(f"""        
     <div class="metric-card">             
         <div class="metric-label">Miền Nam</div>   
@@ -266,25 +266,36 @@ with col3_f:
     if st.button("🔄 Reset dữ liệu lưu trữ", use_container_width=True, type="secondary"):
         from utils.qr_storage import reset_daily_data
 
+        # Ghi số 1 vào DB14.1 (offset 2, vì DB14.0 là offset 0-1)
+        if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+            success = st.session_state.plc_manager.write_db(14, 2, 1)
+            if success:
+                add_to_log_stack("[PLC] Đã ghi DB14.1 = 1 (Reset signal)")
+            else:
+                st.error("❌ Lỗi ghi DB14.1")
+                st.stop()
+
         if reset_daily_data():
-                # Reset session state
+            # Reset session state
             st.session_state.package_counter = 0
             st.session_state.package_queue.clear()
             st.session_state.last_qr_count = 0
             st.session_state.log_stack = []
             st.session_state.db_array_position = 1
 
-        # Verify PLC connection
-        if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-            add_to_log_stack("[RESET] Đã reset dữ liệu - PLC vẫn kết nối")
-        else:
-            add_to_log_stack("[RESET] Đã reset dữ liệu - Cảnh báo: PLC chưa kết nối")
+            # Ghi số 0 vào DB14.1 sau khi reset xong
+            if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+                success = st.session_state.plc_manager.write_db(14, 2, 0)
+                if success:
+                    add_to_log_stack("[PLC] Đã ghi DB14.1 = 0 (Reset complete)")
+                else:
+                    st.warning("⚠️ Không thể reset DB14.1 về 0")
 
-        st.success("✅ Đã reset toàn bộ dữ liệu!")
-        time.sleep(0.5)
-        st.rerun()
-    else:
-        st.error("❌ Lỗi khi reset dữ liệu")
+            st.success("✅ Đã reset toàn bộ dữ liệu!")
+            time.sleep(0.5)
+            st.rerun()
+        else:
+            st.error("❌ Lỗi khi reset dữ liệu")
 
 # Sidebar
 with st.sidebar:

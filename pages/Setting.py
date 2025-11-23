@@ -7,6 +7,12 @@ from Component.Camera.CameraHeader import load_css
 
 # Cấu hình trang
 
+col_h1,col_h2 = st.columns([1,3])
+with col_h1:
+    if st.button("⬅️ Quay về", use_container_width=True, type="secondary"):
+        st.switch_page("Home.py")
+with col_h2:
+    st.markdown("")
 
 st.set_page_config(
     page_title="⚙️ Cài đặt hệ thống",
@@ -291,7 +297,6 @@ with col2:
                 st.session_state.plc_rack,
                 st.session_state.plc_slot
             )
-
             if success:
                 st.session_state.plc_connected = True
                 st.success(message)
@@ -309,6 +314,7 @@ with col2:
                 # Status Display
     if st.session_state.plc_connected:
         st.success("🟢 PLC đã kết nối (Snap7 S7 Protocol)")
+        st.switch_page("pages/PLC.py")
 
         # Test DB Write
         if st.button("Test Connection"):
@@ -316,7 +322,6 @@ with col2:
                 success = st.session_state.plc_manager.write_db(14, 0, 2)
                 if success:
                     st.success("✅ Connection successful!")
-                    st.switch_page("pages/PLC.py")
                 else:
                     st.error("❌Error to connect")
     else:
@@ -334,16 +339,16 @@ if st.button("🔄 Reset về mặc định", use_container_width=True):
     st.success("Đã reset về cài đặt mặc định!")
     st.rerun()
 
-col1_b, col2_b, col3_b = st.columns([1, 1, 1])
+col1_b, col2_b, col3_b = st.columns([1, 2, 1])
 with col1_b:
-    if st.button("Home", use_container_width=True):
-        st.switch_page("Home.py")
-with col2_b:
-    if st.button("Camera", use_container_width=True):
+    if st.button("Camera", use_container_width=True, type=("primary")):
         st.switch_page("pages/camera.py")
+with col2_b:
+    st.markdown("")
 with col3_b:
-    if st.button("Thống kê", use_container_width=True):
-        st.switch_page("pages/Dashboard.py")
+    if st.button("PLC", use_container_width=True, type=("primary")):
+        st.switch_page("pages/PLC.py")
+
 
 
 
@@ -356,11 +361,13 @@ with st.sidebar:
         <p>Xin chào, <strong>{st.session_state.get('username', 'User')}</strong></p>  
     </div>  
     """, unsafe_allow_html=True)
-    im_co1, im_co2 = st.columns(2)
-    with im_co1:
-        st.image("image/images2.jfif", width=80)
-    with im_co2:
-        st.image("image/images.png", width=80)
+    col1_im, col2_im, col3_im = st.columns([1, 2, 1])
+    with col1_im:
+        st.markdown("")
+    with col2_im:
+        st.image("image/Logo.png", width=120)
+    with col3_im:
+        st.markdown("")
 
     if st.button("🔒 Đăng xuất", use_container_width=True):
         st.session_state.logged_in = False

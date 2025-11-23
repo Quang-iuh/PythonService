@@ -16,6 +16,17 @@ from utils.qr_processor import process_qr_detection
 from utils.qr_storage import load_qr_data, get_last_qr
 from utils.auth import check_login
 
+# Check authentication
+if not check_login():
+    st.stop()
+
+col_h1,col_h2 = st.columns([1,3])
+with col_h1:
+    if st.button("⬅️ Quay về", use_container_width=True, type="secondary"):
+        st.switch_page("Home.py")
+with col_h2:
+    st.markdown("")
+
 # Cấu hình trang
 st.set_page_config(
     page_title="🔬 QR Scanner System",
@@ -27,9 +38,7 @@ st.set_page_config(
 load_css("CameraStyle.css")
 render_main_header("🔬 HỆ THỐNG QUÉT MÃ QR", "")
 
-# Check authentication
-if not check_login():
-    st.stop()
+
 
 def add_to_log_stack(param):
     pass
@@ -98,8 +107,6 @@ with col1:
         async_processing=False
     )
     render_qr_history_table(qr_data)
-
-
 with col2:
     render_system_metrics(total_scans, last_qr)
     if st.button("Setting", use_container_width=True, type=("primary"), width=("stretch")):
@@ -109,25 +116,36 @@ with col2:
     if st.button("🔄 Reset dữ liệu lưu trữ", use_container_width=True, type="secondary"):
         from utils.qr_storage import reset_daily_data
 
+        # Ghi số 1 vào DB14.1 (offset 2, vì DB14.0 là offset 0-1)
+        if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+            success = st.session_state.plc_manager.write_db(14, 2, 1)
+            if success:
+                add_to_log_stack("[PLC] Đã ghi DB14.1 = 1 (Reset signal)")
+            else:
+                st.error("❌ Lỗi ghi DB14.1")
+                st.stop()
+
         if reset_daily_data():
-                # Reset session state
+            # Reset session state
             st.session_state.package_counter = 0
             st.session_state.package_queue.clear()
             st.session_state.last_qr_count = 0
             st.session_state.log_stack = []
             st.session_state.db_array_position = 1
 
-        # Verify PLC connection
-        if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-            add_to_log_stack("[RESET] Đã reset dữ liệu - PLC vẫn kết nối")
-        else:
-            add_to_log_stack("[RESET] Đã reset dữ liệu - Cảnh báo: PLC chưa kết nối")
+            # Ghi số 0 vào DB14.1 sau khi reset xong
+            if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+                success = st.session_state.plc_manager.write_db(14, 2, 0)
+                if success:
+                    add_to_log_stack("[PLC] Đã ghi DB14.1 = 0 (Reset complete)")
+                else:
+                    st.warning("⚠️ Không thể reset DB14.1 về 0")
 
-        st.success("✅ Đã reset toàn bộ dữ liệu!")
-        time.sleep(0.5)
-        st.rerun()
-    else:
-        st.error("❌ Lỗi khi reset dữ liệu")
+            st.success("✅ Đã reset toàn bộ dữ liệu!")
+            time.sleep(0.5)
+            st.rerun()
+        else:
+            st.error("❌ Lỗi khi reset dữ liệu")
 
 # Render sidebar
 with st.sidebar:
@@ -137,11 +155,13 @@ with st.sidebar:
         <p>Xin chào, <strong>{st.session_state.get('username', 'User')}</strong></p>  
     </div>  
     """, unsafe_allow_html=True)
-    im_co1, im_co2 = st.columns(2)
-    with im_co1:
-        st.image("image/images2.jfif", width=80)
-    with im_co2:
-        st.image("image/images.png", width=80)
+    col1_im, col2_im, col3_im = st.columns([1, 2, 1])
+    with col1_im:
+        st.markdown("")
+    with col2_im:
+        st.image("image/Logo.png", width=120)
+    with col3_im:
+        st.markdown("")
 
     if st.button("🔒 Đăng xuất", use_container_width=True, type=("tertiary")):
         st.session_state.logged_in = False
