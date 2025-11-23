@@ -1,11 +1,8 @@
-
 import pandas as pd
 import logging
 from utils.qr_storage import save_qr_data, get_last_qr
 
 logger = logging.getLogger(__name__)
-
-
 def classify_qr(qr_data: str) -> str:
     """Phân loại QR theo miền"""
     qr_lower = qr_data.lower()
