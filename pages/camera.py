@@ -87,7 +87,7 @@ with col1:
         media_stream_constraints={
             "video": {
                 "width": {"ideal": 1280},
-                "height": {"ideal": 720},
+                "height": {"ideal": 1024},
                 "frameRate": {"ideal": st.session_state.get('camera_fps', 30)}
             },
             "audio": False
@@ -102,9 +102,10 @@ with col1:
         },
         async_processing=False
     )
-    render_qr_history_table(qr_data)
+
 with col2:
     render_system_metrics(total_scans, last_qr)
+    render_qr_history_table(qr_data)
     if st.button("Thống kê", use_container_width=True, type=("primary"), width=("stretch")):
         switch_page("pages/Dashboard.py")
 # Render sidebar
@@ -130,5 +131,5 @@ with st.sidebar:
 
 # Auto-refresh để cập nhật UI khi có QR mới
 if ctx.state.playing:
-    time.sleep(5)  # Refresh mỗi 5 giây
+    time.sleep(3)  # Refresh mỗi 3 giây
     st.rerun()

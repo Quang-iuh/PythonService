@@ -111,11 +111,11 @@ with ((st.container())):
         label_visibility="visible"
     )
 
-    col_login, col_demo = st.columns([2, 1])
+    col_login, col_demo = st.columns([1, 1])
 
     with col_login:
         if st.button("🚀 ĐĂNG NHẬP", use_container_width=True, type="primary"):
-            if username == "admin" and password == "123456"or username == "quang" and password == "2603":
+            if username == "admin" and password == "123456"or username == "quang" and password == "0000":
                 st.session_state.logged_in = True
                 st.session_state.username = username
                 st.success("✅ Đăng nhập thành công!")

@@ -1,1 +1,23 @@
-[]
+[
+  {
+    "data": "DH765154, Trung Quoc, Bộ cờ lê TOTAL (SP9740)",
+    "type": "QR_code",
+    "time": "2025-11-26 14:28:08",
+    "region": "Miền khác",
+    "region_code": 4
+  },
+  {
+    "data": "DH293054, Thái Lan, Bo luc giac TOTAL (SP8935) ",
+    "type": "QR_code",
+    "time": "2025-11-26 14:34:51",
+    "region": "Miền khác",
+    "region_code": 4
+  },
+  {
+    "data": "DH765154, Trung Quoc, Bộ cờ lê TOTAL (SP9740)",
+    "type": "QR_code",
+    "time": "2025-11-26 14:35:22",
+    "region": "Miền khác",
+    "region_code": 4
+  }
+]
