@@ -1,16 +1,12 @@
-from operator import truediv
-
 import streamlit as st
 from streamlit import switch_page
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 import cv2
 import av
 import time
-
 # Import components
 from Component.Camera.CameraHeader import load_css, render_main_header
 from Component.Camera.CameraMetrics import render_system_metrics
-from Component.Camera.CameraSidebar import render_sidebar
 from Component.Camera.CameraData_table import render_qr_history_table
 from utils.qr_processor import process_qr_detection
 from utils.qr_storage import load_qr_data, get_last_qr
@@ -111,76 +107,6 @@ with col2:
     render_system_metrics(total_scans, last_qr)
     if st.button("Thống kê", use_container_width=True, type=("primary"), width=("stretch")):
         switch_page("pages/Dashboard.py")
-    if st.button("🔄 Reset dữ liệu lưu trữ", use_container_width=True, type="secondary"):
-        from utils.qr_storage import reset_daily_data
-
-        # Ghi số 1 vào DB14.1 (offset 2, vì DB14.0 là offset 0-1)
-        if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-            # Tạo bytearray chứa 202 bytes (101 positions × 2 bytes) = tất cả là 0
-            zero_array = bytearray(202)
-
-            # Ghi 1 lần cho mỗi DB thay vì 101 lần
-            st.session_state.plc_manager.client.db_write(1, 0, zero_array)
-            add_to_log_stack("Đã reset dữ liệu danh sách 1")
-
-            st.session_state.plc_manager.client.db_write(2, 0, zero_array)
-            add_to_log_stack("Đã reset dữ liệu danh sách 2")
-
-            st.session_state.plc_manager.client.db_write(3, 0, zero_array)
-            add_to_log_stack("Đã reset dữ liệu danh sách 3")
-
-            # Ghi tín hiệu reset
-            success = st.session_state.plc_manager.write_db(14, 2, 1)
-            if success:
-                add_to_log_stack("[PLC] Đã ghi DB14.1 = 1 (Reset signal)")
-            else:
-                st.error("❌ Lỗi reset bộ nhớ..., Xem lại kết nối dây")
-                st.stop()
-
-        if reset_daily_data():
-            # Reset session state
-            st.session_state.package_counter = 0
-            st.session_state.package_queue.clear()
-            st.session_state.last_qr_count = 0
-            st.session_state.log_stack = []
-            st.session_state.db_array_position = 1
-
-            # Ghi số 0 vào DB14.1 sau khi reset xong
-            if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-                success = st.session_state.plc_manager.write_db(14, 2, 0)
-                if success:
-                    add_to_log_stack("[PLC] Đã ghi DB14.1 = 0 (Reset complete)")
-                else:
-                    st.warning("⚠️ Không thể reset DB14.1 về 0")
-
-            st.success("✅ Đã reset toàn bộ dữ liệu!")
-            time.sleep(0.5)
-            st.rerun()
-        else:
-            st.error("❌ Lỗi khi reset dữ liệu")
-
-        if reset_daily_data():
-            # Reset session state
-            st.session_state.package_counter = 0
-            st.session_state.package_queue.clear()
-            st.session_state.last_qr_count = 0
-            st.session_state.log_stack = []
-            st.session_state.db_array_position = 1
-
-            # Ghi số 0 vào DB14.1 sau khi reset xong
-            if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-                success = st.session_state.plc_manager.write_db(14, 2, 0)
-                if success:
-                    add_to_log_stack("[PLC] Đã ghi DB14.1 = 0 (Reset complete)")
-                else:
-                    st.warning("⚠️ Không thể reset DB14.1 về 0")
-
-            st.success("✅ Đã reset toàn bộ dữ liệu!")
-            time.sleep(0.5)
-            st.rerun()
-        else:
-            st.error("❌ Lỗi khi reset dữ liệu")
-
 # Render sidebar
 with st.sidebar:
     st.markdown(f"""  
@@ -204,5 +130,5 @@ with st.sidebar:
 
 # Auto-refresh để cập nhật UI khi có QR mới
 if ctx.state.playing:
-    time.sleep(2)  # Refresh mỗi 2 giây
+    time.sleep(5)  # Refresh mỗi 5 giây
     st.rerun()

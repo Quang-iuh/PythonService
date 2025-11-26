@@ -94,30 +94,28 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Date Filter
-nav_col1, nav_col2= st.columns(2)
-with nav_col1:
-    st.markdown("""    
+st.markdown("""    
 <div class="date-filter">    
-    <h3>📅 Chọn ngày xem data</h3>    
+    <h2>📅 Chọn ngày xem data</h2>    
 </div>    
 """, unsafe_allow_html=True)
 
-    available_dates = get_available_dates()
-with nav_col2:
-    if available_dates:
-        selected_date = st.selectbox(
-        "Chọn ngày:",
-        options=available_dates,
-        format_func=lambda x: x.strftime("%Y-%m-%d (%A)"),
-        index=0
-    )
+available_dates = get_available_dates()
+
+if available_dates:
+    selected_date = st.selectbox(
+    "Chọn ngày:",
+    options=available_dates,
+    format_func=lambda x: x.strftime("%Y-%m-%d (%A)"),
+    index=0
+)
     # Load data theo ngày được chọn
 
-        qr_history = load_qr_data(selected_date)
-        st.info(f"📊 Hiển thị data ngày {selected_date.strftime('%Y-%m-%d')}: {len(qr_history)}")
-    else:
-        st.warning("Chưa có data nào")
-        qr_history = []
+    qr_history = load_qr_data(selected_date)
+    st.info(f"📊 Hiển thị data ngày {selected_date.strftime('%Y-%m-%d')}: {len(qr_history)}")
+else:
+    st.warning("Chưa có data nào")
+    qr_history = []
 
 # Tính toán thống kê
 total_scans = len(qr_history)
@@ -248,13 +246,7 @@ if qr_history:
         st.markdown('</div>', unsafe_allow_html=True)
 
         # Download button
-        csv = filtered_df.to_csv(index=False, encoding='utf-8-sig', sep=',')
-        st.download_button(
-            label="📥 Tải xuống",
-            data=csv,
-            file_name=f"Dữ_liệu_đơn_hàng_{selected_date.strftime('%Y%m%d')}.csv",
-            mime="text/csv"
-        )
+
     else:
         st.info("🔍 Không có dữ liệu cho bộ lọc đã chọn.")
 
@@ -263,7 +255,7 @@ else:
 
 
 
-col1_f,col2_f,col3_f = st.columns(3)
+col1_f,col2_f,col3_f = st.columns([1,1,3])
 with col1_f:
     if st.button("🔄 Reset dữ liệu lưu trữ", use_container_width=True, type="secondary"):
         from utils.qr_storage import reset_daily_data
@@ -313,7 +305,14 @@ with col1_f:
         else:
             st.error("❌ Lỗi khi reset dữ liệu")
 with col2_f:
-    st.markdown("")
+    csv = filtered_df.to_csv(index=False, encoding='utf-8-sig', sep=',')
+    st.download_button(
+        label="📥 Tải xuống",
+        data=csv,
+        file_name=f"Dữ_liệu_đơn_hàng_{selected_date.strftime('%Y%m%d')}_Manager:{st.session_state.get('username')}",
+        mime="text/csv"
+    )
+
 with col3_f:
     st.markdown("")
 

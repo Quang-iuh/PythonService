@@ -1,0 +1,138 @@
+[
+  {
+    "data": "DH815623, Mien Nam, Ba lo hoc sinh (SP5060)",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:41:00",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH558360, Mien Đong Trung Quoc,Logitech C270 (SP8432)\r\n",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:41:10",
+    "region": "Miền khác",
+    "package_id": 0,
+    "region_code": 0
+  },
+  {
+    "data": "DH452344, Mien Bac, Ao thun (SP5043)",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:41:22",
+    "region": "Miền Bắc",
+    "package_id": 0,
+    "region_code": 2
+  },
+  {
+    "data": "DH143282, Mien Nam, Ao thun (SP5043)",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:41:33",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH558201, Mien Nam,  Cục sạc nhanh 120W  (SP7410)",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:41:43",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH293054, Mien Nam Trung Quoc, Bo luc giac TOTAL (SP8935)",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:41:58",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH558191, Mien Bac, Sac du phong (SP7394)",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:42:08",
+    "region": "Miền Bắc",
+    "package_id": 0,
+    "region_code": 2
+  },
+  {
+    "data": "DH558210, Mien Nam, Đen ngu cam bien (SP7419)",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:42:23",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH504643, Mien Trung, Tai nghe Bluetooth (SP9031)",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:42:30",
+    "region": "Miền Trung",
+    "package_id": 0,
+    "region_code": 3
+  },
+  {
+    "data": "DH278644, Mien Trung, Dep to ong (SP6612)",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:42:44",
+    "region": "Miền Trung",
+    "package_id": 0,
+    "region_code": 3
+  },
+  {
+    "data": "DH663040, Mien Nam Trung Quoc, Nho khô sấy (SP9245)",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:43:09",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH944755, Mien Bac, Binh giu nhiet (SP8720) ",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:43:26",
+    "region": "Miền Bắc",
+    "package_id": 0,
+    "region_code": 2
+  },
+  {
+    "data": "DH558205, Mien Bac, Ban phim Bluetooth (SP7414)",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:43:36",
+    "region": "Miền Bắc",
+    "package_id": 0,
+    "region_code": 2
+  },
+  {
+    "data": "H558204, Mien Nam, Chuột gaming RGB (SP7413)",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:43:55",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "H558209, Mien Trung, Sạc nhanh 25W (SP7418)",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:44:08",
+    "region": "Miền Trung",
+    "package_id": 0,
+    "region_code": 3
+  },
+  {
+    "data": "DH944755, Mien Bac, Ao muu (SP9824)",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:44:27",
+    "region": "Miền Bắc",
+    "package_id": 0,
+    "region_code": 2
+  },
+  {
+    "data": "DH903019, Mien Trung, Ba lo (SP3014)",
+    "type": "QRCODE",
+    "time": "2025-11-22 15:44:37",
+    "region": "Miền Trung",
+    "package_id": 0,
+    "region_code": 3
+  }
+]

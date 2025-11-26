@@ -1,5 +1,3 @@
-from operator import iconcat
-
 import streamlit as st
 import time
 from datetime import datetime
@@ -105,7 +103,7 @@ def classify_qr_to_region_code(region):
         "Miền Nam": 1,
         "Miền Bắc": 2,
         "Miền Trung": 3,
-        "Miền khác": 0
+        "Miền khác": 4
     }
     return region_mapping.get(region, 0)
 
@@ -115,7 +113,7 @@ def region_code_to_name(code):
         1: "Miền Nam",
         2: "Miền Bắc",
         3: "Miền Trung",
-        0: "Miền khác"
+        4: "Miền khác"
     }
     return code_mapping.get(code, "Miền khác")
 
@@ -144,8 +142,7 @@ def process_new_packages():
         st.session_state.last_qr_count = len(qr_data)
 
 def process_cb2_sensor():
-    """CB2 Sensor: Sequential array storage cho DB1,2,3"""
-
+    """CB2 Sensor: Sequential array storage cho DB1"""
     # Kiểm tra kết nối PLC
     if 'plc_manager' not in st.session_state or not st.session_state.plc_connected:
         return
@@ -256,7 +253,7 @@ with col_info2:
 
         st.markdown(f"""  
         <div class="active-timer">  
-            <strong>Khay số: {pkg_id}</strong><br>  
+            <strong>Khay số: {region_code}</strong><br>  
             <small>Khu vực: {region_name} (Mã: {region_code})</small><br>  
             <small>Trạng thái: Chờ tín hiệu từ cảm biến</small>  
         </div>  

@@ -1,4 +1,3 @@
-from operator import truediv
 
 import streamlit as st
 import time
@@ -97,7 +96,7 @@ def set_bg_image(image_file):
 # Gọi hàm ngoài định nghĩa
 set_bg_image("image/IUH.jpg")
 
-with st.container():
+with ((st.container())):
 
     username = st.text_input(
         "👤 Tên đăng nhập",
@@ -116,7 +115,7 @@ with st.container():
 
     with col_login:
         if st.button("🚀 ĐĂNG NHẬP", use_container_width=True, type="primary"):
-            if username == "admin" and password == "123456":
+            if username == "admin" and password == "123456"or username == "quang" and password == "2603":
                 st.session_state.logged_in = True
                 st.session_state.username = username
                 st.success("✅ Đăng nhập thành công!")

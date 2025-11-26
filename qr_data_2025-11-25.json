@@ -1,0 +1,44 @@
+[
+  {
+    "data": "DH558205, Mien Bac, Ban phim Bluetooth (SP7414)",
+    "type": "QR_code",
+    "time": "2025-11-25 17:13:03",
+    "region": "Miền Bắc",
+    "region_code": 2
+  },
+  {
+    "data": "DH903019, Mien Trung, Ba lo (SP3014)",
+    "type": "QR_code",
+    "time": "2025-11-25 17:13:27",
+    "region": "Miền Trung",
+    "region_code": 3
+  },
+  {
+    "data": "DH558201, Mien Nam,  Cục sạc nhanh 120W  (SP7410)",
+    "type": "QR_code",
+    "time": "2025-11-25 17:13:34",
+    "region": "Miền Nam",
+    "region_code": 1
+  },
+  {
+    "data": "DH558360, Mien Đong Trung Quoc,Logitech C270 (SP8432)\r\n",
+    "type": "QR_code",
+    "time": "2025-11-25 17:23:39",
+    "region": "Miền khác",
+    "region_code": 4
+  },
+  {
+    "data": "DH278644, Mien Trung, Dep to ong (SP6612)",
+    "type": "QR_code",
+    "time": "2025-11-25 17:24:53",
+    "region": "Miền Trung",
+    "region_code": 3
+  },
+  {
+    "data": "DH944755, Mien Bac, Binh giu nhiet (SP8720) ",
+    "type": "QR_code",
+    "time": "2025-11-25 17:25:04",
+    "region": "Miền Bắc",
+    "region_code": 2
+  }
+]

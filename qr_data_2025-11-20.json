@@ -1,0 +1,34 @@
+[
+  {
+    "data": "DH558201, Mien Nam,  Cục sạc nhanh 120W  (SP7410)",
+    "type": "QRCODE",
+    "time": "2025-11-20 14:07:17",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH815623, Mien Nam, Ba lo hoc sinh (SP5060)",
+    "type": "QRCODE",
+    "time": "2025-11-20 14:07:20",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH663040, Mien Nam Trung Quoc, Nho khô sấy (SP9245)",
+    "type": "QRCODE",
+    "time": "2025-11-20 14:07:23",
+    "region": "Miền Nam",
+    "package_id": 0,
+    "region_code": 1
+  },
+  {
+    "data": "DH558191, Mien Bac, Sac du phong (SP7394)",
+    "type": "QRCODE",
+    "time": "2025-11-20 14:07:26",
+    "region": "Miền Bắc",
+    "package_id": 0,
+    "region_code": 2
+  }
+]

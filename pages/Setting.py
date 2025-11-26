@@ -314,7 +314,6 @@ with col2:
                 # Status Display
     if st.session_state.plc_connected:
         st.success("🟢 PLC đã kết nối (Snap7 S7 Protocol)")
-        st.switch_page("pages/PLC.py")
 
         # Test DB Write
         if st.button("Test Connection"):
