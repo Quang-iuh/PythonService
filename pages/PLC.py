@@ -1,3 +1,5 @@
+from audioop import error
+
 import streamlit as st
 import time
 from datetime import datetime
@@ -75,7 +77,8 @@ if 'vfd_frequency' not in st.session_state:
     st.session_state.vfd_frequency = 0.0
 if 'confirm_reset' not in st.session_state:
     st.session_state.confirm_reset = False
-
+if 'counter' not in st.session_state:  # Sửa từ 'couter'
+    st.session_state.counter = 0
 
 # Header
 st.markdown("""  
@@ -153,7 +156,7 @@ def process_cb2_sensor():
 
     try:
         # Đọc DB14[0] để detect CB2 trigger
-        db14_data = st.session_state.plc_manager.read_db(14, 0, 2)
+        db14_data = st.session_state.plc_manager.read_db(14, 0, 2) #ID4[3]
 
         if db14_data and len(db14_data) >= 2:
             db14_value = int.from_bytes(db14_data[0:2], byteorder='big')
@@ -206,29 +209,47 @@ def process_cb2_sensor():
 
         # Xử lý packages mới
        # Đọc tần số biến tần từ DB4
-    def read_vfd_frequency():
-        if 'plc_manager' not in st.session_state or not st.session_state.plc_connected:
-            return 0.0
+def read_vfd_frequency():
+    if 'plc_manager' not in st.session_state or not st.session_state.plc_connected:
+        return 0.0
 
-        try:
+    try:
             # Đọc DB4 - giả sử frequency được lưu ở offset 0, 2 bytes
-            db4_data = st.session_state.plc_manager.read_db(14, 2, 2)
+        db4_data = st.session_state.plc_manager.read_db(14, 2, 2)
 
-            if db4_data and len(db4_data) >= 2: #dữ liệu phải có ít nhất 2 byte.
+        if db4_data and len(db4_data) >= 2: #dữ liệu phải có ít nhất 2 byte.
                 # Convert 2 bytes thành integer (big-endian)
-                frequency_raw = int.from_bytes(db4_data[0:2], byteorder='big')
-                frequency = frequency_raw
-                return frequency
-            return 0
-        except Exception as e:
-            add_to_log_stack(f"[ERROR] Lỗi đọc frequency DB4: {str(e)}")
-            return 0.0
+            frequency_raw = int.from_bytes(db4_data[0:2], byteorder='big')
+            frequency = frequency_raw
+            return frequency
+        return 0
+    except Exception as e:
+        add_to_log_stack(f"[ERROR] Lỗi đọc frequency DB4: {str(e)}")
+        return 0.0
+def couter():
+    if 'plc_manager' not in st.session_state or not st.session_state.plc_connected:
+        return 0
+    try:
+        couter_data = st.session_state.plc_manager.read_db(14, 6, 2)
+
+        if couter_data and len(couter_data) >= 2:  # dữ liệu phải có ít nhất 2 byte.
+            # Convert 2 bytes thành integer (big-endian)
+            couter_db4= int.from_bytes(couter_data[0:2], byteorder='big')
+            return couter_db4
+        return 0
+    except Exception as e:
+        add_to_log_stack(f"[ERROR] Lỗi đọc {str(e)}")
+        return 0
 
 process_new_packages()
-
 # Xử lý CB2 sensors
 process_cb2_sensor()
+couter()
 
+
+def counter():
+    return 0
+counter_value = counter()
 
 col_info1, col_info2, col_info3= st.columns(3)
 
@@ -236,6 +257,7 @@ with col_info1:
     st.markdown("#### ⚙️ Thông số hệ thống")
     st.metric("Tổng QR đã quét", len(qr_data))
     st.metric("Tổng QR đã gữi cho PLC", st.session_state.package_counter - len(st.session_state.package_queue))
+    st.metric("Bộ đếm trong PLC đã quét",counter_value)
     # Thêm đọc DB14.ID[2]
 
     # PLC Status
@@ -275,6 +297,8 @@ with col_info3:
         label=(""),
         value=f"{db14_value:.0f} Hz"
     )
+
+
 st.markdown("<h3 style='text-align: center;'> 🚚Hàng đang được xử lý</3>",unsafe_allow_html=True)
 if st.session_state.package_queue:
     queue_data = []
