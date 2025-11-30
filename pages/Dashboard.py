@@ -245,75 +245,69 @@ if qr_history:
         )
         st.markdown('</div>', unsafe_allow_html=True)
         # Download button
+        csv = filtered_df.to_csv(index=False, encoding='utf-8-sig', sep=',')
+        col_d1, col_d2 = st.columns(2)
+        with col_d1:
+            st.download_button(
+                label="📥 Tải xuống",
+                data=csv,
+                file_name=f"Dữ_liệu_đơn_hàng_{selected_date.strftime('%Y%m%d')}_Manager:{st.session_state.get('username')}",
+                mime="text/csv"
+            )
+        with col_d2:
+            if st.button("🔄 Reset dữ liệu lưu trữ", use_container_width=True, type="secondary"):
+                from utils.qr_storage import reset_daily_data
 
+                # Ghi số 1 vào DB14.1 (offset 2, vì DB14.0 là offset 0-1)
+                if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+                    # Tạo bytearray chứa 202 bytes (101 positions × 2 bytes) = tất cả là 0
+                    zero_array = bytearray(202)
+
+                    # Ghi 1 lần cho mỗi DB thay vì 101 lần
+                    st.session_state.plc_manager.client.db_write(1, 0, zero_array)
+                    add_to_log_stack("Đã reset dữ liệu danh sách 1")
+
+                    st.session_state.plc_manager.client.db_write(2, 0, zero_array)
+                    add_to_log_stack("Đã reset dữ liệu danh sách 2")
+
+                    st.session_state.plc_manager.client.db_write(3, 0, zero_array)
+                    add_to_log_stack("Đã reset dữ liệu danh sách 3")
+
+                    # Ghi tín hiệu reset
+                    success = st.session_state.plc_manager.write_db(14, 2, 1)
+                    if success:
+                        add_to_log_stack("[PLC] Đã ghi DB14.1 = 1 (Reset signal)")
+                    else:
+                        st.error("❌ Lỗi reset bộ nhớ..., Xem lại kết nối dây")
+                        st.stop()
+
+                if reset_daily_data():
+                    # Reset session state
+                    st.session_state.package_counter = 0
+                    st.session_state.package_queue.clear()
+                    st.session_state.last_qr_count = 0
+                    st.session_state.log_stack = []
+                    st.session_state.db_array_position = 1
+
+                    # Ghi số 0 vào DB14.1 sau khi reset xong
+                    if 'plc_manager' in st.session_state and st.session_state.plc_connected:
+                        success = st.session_state.plc_manager.write_db(14, 2, 0)
+                        if success:
+                            add_to_log_stack("[PLC] Đã ghi DB14.1 = 0 (Reset complete)")
+                        else:
+                            st.warning("⚠️ Không thể reset DB14.1 về 0")
+
+                    st.success("✅ Đã reset toàn bộ dữ liệu!")
+                    time.sleep(0.5)
+                    st.rerun()
+                else:
+                    st.error("❌ Lỗi khi reset dữ liệu")
     else:
         st.info("🔍 Không có dữ liệu cho bộ lọc đã chọn.")
 
 else:
     st.info("🔍 Chưa có dữ liệu nào được quét. Vui lòng trở về trang Camera để quét mã.")
 
-
-
-col1_f,col2_f,col3_f = st.columns([1,1,3])
-with col1_f:
-    if st.button("🔄 Reset dữ liệu lưu trữ", use_container_width=True, type="secondary"):
-        from utils.qr_storage import reset_daily_data
-
-        # Ghi số 1 vào DB14.1 (offset 2, vì DB14.0 là offset 0-1)
-        if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-            # Tạo bytearray chứa 202 bytes (101 positions × 2 bytes) = tất cả là 0
-            zero_array = bytearray(202)
-
-            # Ghi 1 lần cho mỗi DB thay vì 101 lần
-            st.session_state.plc_manager.client.db_write(1, 0, zero_array)
-            add_to_log_stack("Đã reset dữ liệu danh sách 1")
-
-            st.session_state.plc_manager.client.db_write(2, 0, zero_array)
-            add_to_log_stack("Đã reset dữ liệu danh sách 2")
-
-            st.session_state.plc_manager.client.db_write(3, 0, zero_array)
-            add_to_log_stack("Đã reset dữ liệu danh sách 3")
-
-            # Ghi tín hiệu reset
-            success = st.session_state.plc_manager.write_db(14, 2, 1)
-            if success:
-                add_to_log_stack("[PLC] Đã ghi DB14.1 = 1 (Reset signal)")
-            else:
-                st.error("❌ Lỗi reset bộ nhớ..., Xem lại kết nối dây")
-                st.stop()
-
-        if reset_daily_data():
-            # Reset session state
-            st.session_state.package_counter = 0
-            st.session_state.package_queue.clear()
-            st.session_state.last_qr_count = 0
-            st.session_state.log_stack = []
-            st.session_state.db_array_position = 1
-
-            # Ghi số 0 vào DB14.1 sau khi reset xong
-            if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-                success = st.session_state.plc_manager.write_db(14, 2, 0)
-                if success:
-                    add_to_log_stack("[PLC] Đã ghi DB14.1 = 0 (Reset complete)")
-                else:
-                    st.warning("⚠️ Không thể reset DB14.1 về 0")
-
-            st.success("✅ Đã reset toàn bộ dữ liệu!")
-            time.sleep(0.5)
-            st.rerun()
-        else:
-            st.error("❌ Lỗi khi reset dữ liệu")
-with col2_f:
-    csv = filtered_df.to_csv(index=False, encoding='utf-8-sig', sep=',')
-    st.download_button(
-        label="📥 Tải xuống",
-        data=csv,
-        file_name=f"Dữ_liệu_đơn_hàng_{selected_date.strftime('%Y%m%d')}_Manager:{st.session_state.get('username')}",
-        mime="text/csv"
-    )
-
-with col3_f:
-    st.markdown("")
 
 # Sidebar
 with st.sidebar:
