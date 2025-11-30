@@ -246,21 +246,15 @@ if qr_history:
         st.markdown('</div>', unsafe_allow_html=True)
         # Download button
 
-        csv = filtered_df.to_csv(index=False, encoding='utf-8-sig', sep=',')
-        st.download_button(
-            label="📥 Download to CSV",
-            data=csv,
-            file_name=f"Dữ_liệu_đơn_hàng_{selected_date.strftime('%Y%m%d')}.csv",
-            mime="text/csv"
-        )
-
     else:
         st.info("🔍 Không có dữ liệu cho bộ lọc đã chọn.")
 
 else:
     st.info("🔍 Chưa có dữ liệu nào được quét. Vui lòng trở về trang Camera để quét mã.")
 
-col1_f,col2_f,col3_f = st.columns([1,1,2])
+
+
+col1_f,col2_f,col3_f = st.columns([1,1,3])
 with col1_f:
     if st.button("🔄 Reset dữ liệu lưu trữ", use_container_width=True, type="secondary"):
         from utils.qr_storage import reset_daily_data
@@ -310,8 +304,13 @@ with col1_f:
         else:
             st.error("❌ Lỗi khi reset dữ liệu")
 with col2_f:
-        # Download button - CHUYỂN VÀO ĐÂY
-    st.markdown('<div class="data-table">', unsafe_allow_html=True)
+    csv = filtered_df.to_csv(index=False, encoding='utf-8-sig', sep=',')
+    st.download_button(
+        label="📥 Tải xuống",
+        data=csv,
+        file_name=f"Dữ_liệu_đơn_hàng_{selected_date.strftime('%Y%m%d')}_Manager:{st.session_state.get('username')}",
+        mime="text/csv"
+    )
 
 with col3_f:
     st.markdown("")
