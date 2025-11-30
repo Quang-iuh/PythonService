@@ -1,71 +1,29 @@
 [
   {
-    "data": "DH663040, Mien Nam Trung Quoc, Nho khô sấy (SP9245)",
+    "data": "DH558205, Mien Bac, Ban phim Bluetooth (SP7414)",
     "type": "QR_code",
-    "time": "2025-11-29 10:34:17",
-    "region": "Miền Nam",
-    "region_code": 1
-  },
-  {
-    "data": "DH558201, Mien Nam,  Cục sạc nhanh 120W  (SP7410)",
-    "type": "QR_code",
-    "time": "2025-11-29 10:34:33",
-    "region": "Miền Nam",
-    "region_code": 1
-  },
-  {
-    "data": "DH452344, Mien Bac, Ao thun (SP5043)",
-    "type": "QR_code",
-    "time": "2025-11-29 10:34:38",
+    "time": "2025-11-29 14:43:53",
     "region": "Miền Bắc",
     "region_code": 2
   },
   {
-    "data": "DH663040, Mien Nam Trung Quoc, Nho khô sấy (SP9245)",
+    "data": "DH278644, Mien Trung, Dep to ong (SP6612)",
     "type": "QR_code",
-    "time": "2025-11-29 10:34:57",
-    "region": "Miền Nam",
-    "region_code": 1
-  },
-  {
-    "data": "DH558201, Mien Nam,  Cục sạc nhanh 120W  (SP7410)",
-    "type": "QR_code",
-    "time": "2025-11-29 10:35:27",
-    "region": "Miền Nam",
-    "region_code": 1
-  },
-  {
-    "data": "DH663040, Mien Nam Trung Quoc, Nho khô sấy (SP9245)",
-    "type": "QR_code",
-    "time": "2025-11-29 10:35:41",
-    "region": "Miền Nam",
-    "region_code": 1
-  },
-  {
-    "data": "DH452344, Mien Bac, Ao thun (SP5043)",
-    "type": "QR_code",
-    "time": "2025-11-29 10:35:46",
-    "region": "Miền Bắc",
-    "region_code": 2
-  },
-  {
-    "data": "DH558201, Mien Nam,  Cục sạc nhanh 120W  (SP7410)",
-    "type": "QR_code",
-    "time": "2025-11-29 10:35:51",
-    "region": "Miền Nam",
-    "region_code": 1
+    "time": "2025-11-29 14:44:08",
+    "region": "Miền Trung",
+    "region_code": 3
   },
   {
     "data": "DH143282, Mien Nam, Ao thun (SP5043)",
     "type": "QR_code",
-    "time": "2025-11-29 10:36:01",
+    "time": "2025-11-29 14:44:26",
     "region": "Miền Nam",
     "region_code": 1
   },
   {
-    "data": "DH663040, Mien Nam Trung Quoc, Nho khô sấy (SP9245)",
+    "data": "DH558201, Mien Nam,  Cục sạc nhanh 120W  (SP7410)",
     "type": "QR_code",
-    "time": "2025-11-29 10:36:07",
+    "time": "2025-11-29 14:44:40",
     "region": "Miền Nam",
     "region_code": 1
   }
