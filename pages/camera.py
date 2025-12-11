@@ -76,38 +76,37 @@ total_scans = len(qr_data)
 last_qr = get_last_qr()
 
 # Layout
-col1, col2 = st.columns([2, 1])
+#col1, col2 = st.columns([5, 1])
 
-with col1:
-    st.markdown("<h2 style='text-align: center;'> 📹 Camera Scanner</h2>", unsafe_allow_html=True)
+#with col1:
+st.markdown("<h2 style='text-align: center;'> 📹 Camera Scanner</h2>", unsafe_allow_html=True)
 
-    ctx = webrtc_streamer(
-        key="qr-camera",
-        video_processor_factory=VideoProcessor,
-        media_stream_constraints={
-            "video": {
-                "width": {"ideal": 1280},
-                "height": {"ideal": 1024},
-                "frameRate": {"ideal": st.session_state.get('camera_fps', 30)}
-            },
-            "audio": False
+ctx = webrtc_streamer(
+    key="qr-camera",
+    video_processor_factory=VideoProcessor,
+    media_stream_constraints={
+        "video": {
+            "height": {"ideal": 1280},
+            "frameRate": {"ideal": st.session_state.get('camera_fps', 30)}
         },
-        rtc_configuration={
-            "iceServers": [
-                {"urls": "stun:stun.l.google.com:19302"},
-                {"urls": "stun:stun1.l.google.com:19302"},
-                {"urls": "turn:openrelay.metered.ca:80", "username": "openrelayproject",
+        "audio": False
+    },
+    rtc_configuration={
+        "iceServers": [
+            {"urls": "stun:stun.l.google.com:19302"},
+            {"urls": "stun:stun1.l.google.com:19302"},
+            {"urls": "turn:openrelay.metered.ca:80", "username": "openrelayproject",
                  "credential": "openrelayproject"}
-            ]
-        },
-        async_processing=False
-    )
+        ]
+    },
+    async_processing=False
+)
 
-with col2:
-    render_system_metrics(total_scans, last_qr)
-    render_qr_history_table(qr_data)
-    if st.button("Thống kê", use_container_width=True, type=("primary"), width=("stretch")):
-        switch_page("pages/Dashboard.py")
+#with col2:
+    #render_system_metrics(total_scans, last_qr)
+    #render_qr_history_table(qr_data)
+if st.button("Thống kê", use_container_width=True, type=("primary"), width=("stretch")):
+    switch_page("pages/Dashboard.py")
 # Render sidebar
 with st.sidebar:
     st.markdown(f"""  
@@ -130,6 +129,6 @@ with st.sidebar:
         st.switch_page("pages/Login.py")
 
 # Auto-refresh để cập nhật UI khi có QR mới
-if ctx.state.playing:
-    time.sleep(3)  # Refresh mỗi 3 giây
-    st.rerun()
+#if ctx.state.playing:
+ #  time.sleep(3)  # Refresh mỗi 3 giây
+   #st.rerun()
