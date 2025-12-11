@@ -1,16 +1,219 @@
 [
   {
+    "data": "DH944755, Mien Bac, Binh giu nhiet (SP8720) ",
+    "type": "QR_code",
+    "time": "2025-12-11 10:59:34",
+    "region": "Miền Bắc",
+    "region_code": 2
+  },
+  {
+    "data": "DH558206, Mien Trung, Camera WIFI EZVIZ (SP7415)",
+    "type": "QR_code",
+    "time": "2025-12-11 10:59:44",
+    "region": "Miền Trung",
+    "region_code": 3
+  },
+  {
     "data": "DH558201, Mien Nam,  Cục sạc nhanh 120W  (SP7410)",
     "type": "QR_code",
-    "time": "2025-12-11 10:36:58",
+    "time": "2025-12-11 10:59:56",
+    "region": "Miền Nam",
+    "region_code": 1
+  },
+  {
+    "data": "DH558311, Campuchia , Man hinh LG 27\" ",
+    "type": "QR_code",
+    "time": "2025-12-11 11:00:04",
+    "region": "Miền khác",
+    "region_code": 4
+  },
+  {
+    "data": "DH944755, Mien Bac, Binh giu nhiet (SP8720) ",
+    "type": "QR_code",
+    "time": "2025-12-11 11:00:27",
+    "region": "Miền Bắc",
+    "region_code": 2
+  },
+  {
+    "data": "DH143282, Mien Nam, Ao thun (SP5043)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:00:29",
+    "region": "Miền Nam",
+    "region_code": 1
+  },
+  {
+    "data": "DH558206, Mien Trung, Camera WIFI EZVIZ (SP7415)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:00:33",
+    "region": "Miền Trung",
+    "region_code": 3
+  },
+  {
+    "data": "DH558201, Mien Nam,  Cục sạc nhanh 120W  (SP7410)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:00:36",
+    "region": "Miền Nam",
+    "region_code": 1
+  },
+  {
+    "data": "DH663040, Trung Quốc, Nho khô sấy (SP9245) ",
+    "type": "QR_code",
+    "time": "2025-12-11 11:00:40",
+    "region": "Miền khác",
+    "region_code": 4
+  },
+  {
+    "data": "DH558360, Trung Quoc, Logitech C270 (SP8432)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:00:43",
+    "region": "Miền khác",
+    "region_code": 4
+  },
+  {
+    "data": "DH143282, Mien Nam, Ao thun (SP5043)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:00:47",
+    "region": "Miền Nam",
+    "region_code": 1
+  },
+  {
+    "data": "DH944755, Mien Bac, Binh giu nhiet (SP8720) ",
+    "type": "QR_code",
+    "time": "2025-12-11 11:00:49",
+    "region": "Miền Bắc",
+    "region_code": 2
+  },
+  {
+    "data": "DH558201, Mien Nam,  Cục sạc nhanh 120W  (SP7410)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:00:52",
+    "region": "Miền Nam",
+    "region_code": 1
+  },
+  {
+    "data": "DH558311, Campuchia , Man hinh LG 27\" ",
+    "type": "QR_code",
+    "time": "2025-12-11 11:00:56",
+    "region": "Miền khác",
+    "region_code": 4
+  },
+  {
+    "data": "DH558360, Trung Quoc, Logitech C270 (SP8432)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:01:00",
+    "region": "Miền khác",
+    "region_code": 4
+  },
+  {
+    "data": "DH765154, Trung Quoc, Bộ cờ lê TOTAL (SP9740)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:01:21",
+    "region": "Miền khác",
+    "region_code": 4
+  },
+  {
+    "data": "DH143282, Mien Nam, Ao thun (SP5043)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:01:27",
     "region": "Miền Nam",
     "region_code": 1
   },
   {
     "data": "DH815623, Mien Nam, Ba lo hoc sinh (SP5060)",
     "type": "QR_code",
-    "time": "2025-12-11 10:37:10",
+    "time": "2025-12-11 11:01:34",
     "region": "Miền Nam",
     "region_code": 1
+  },
+  {
+    "data": "DH558311, Campuchia , Man hinh LG 27\" ",
+    "type": "QR_code",
+    "time": "2025-12-11 11:01:40",
+    "region": "Miền khác",
+    "region_code": 4
+  },
+  {
+    "data": "DH765154, Trung Quoc, Bộ cờ lê TOTAL (SP9740)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:01:44",
+    "region": "Miền khác",
+    "region_code": 4
+  },
+  {
+    "data": "DH903019, Mien Trung, Ba lo (SP3014)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:01:49",
+    "region": "Miền Trung",
+    "region_code": 3
+  },
+  {
+    "data": "DH293054, Thái Lan, Bo luc giac TOTAL (SP8935) ",
+    "type": "QR_code",
+    "time": "2025-12-11 11:02:02",
+    "region": "Miền khác",
+    "region_code": 4
+  },
+  {
+    "data": "H558204, Mien Nam, Chuột gaming RGB (SP7413)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:02:06",
+    "region": "Miền Nam",
+    "region_code": 1
+  },
+  {
+    "data": "DH452344, Mien Bac, Ao thun (SP5043)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:02:12",
+    "region": "Miền Bắc",
+    "region_code": 2
+  },
+  {
+    "data": "DH765154, Trung Quoc, Bộ cờ lê TOTAL (SP9740)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:02:36",
+    "region": "Miền khác",
+    "region_code": 4
+  },
+  {
+    "data": "DH558206, Mien Trung, Camera WIFI EZVIZ (SP7415)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:02:45",
+    "region": "Miền Trung",
+    "region_code": 3
+  },
+  {
+    "data": "H558204, Mien Nam, Chuột gaming RGB (SP7413)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:02:49",
+    "region": "Miền Nam",
+    "region_code": 1
+  },
+  {
+    "data": "DH293054, Thái Lan, Bo luc giac TOTAL (SP8935) ",
+    "type": "QR_code",
+    "time": "2025-12-11 11:02:55",
+    "region": "Miền khác",
+    "region_code": 4
+  },
+  {
+    "data": "H558209, Mien Trung, Sạc nhanh 25W (SP7418)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:03:00",
+    "region": "Miền Trung",
+    "region_code": 3
+  },
+  {
+    "data": "DH143282, Mien Nam, Ao thun (SP5043)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:03:03",
+    "region": "Miền Nam",
+    "region_code": 1
+  },
+  {
+    "data": "DH452344, Mien Bac, Ao thun (SP5043)",
+    "type": "QR_code",
+    "time": "2025-12-11 11:03:13",
+    "region": "Miền Bắc",
+    "region_code": 2
   }
 ]
