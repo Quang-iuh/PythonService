@@ -117,117 +117,80 @@ def region_code_to_name(code):
     }
     return code_mapping.get(code, "Miền khác")
 
-def process_new_packages():
-    """CB1 Sensor + Camera: Xử lý packages mới"""
-    if len(qr_data) > st.session_state.last_qr_count:
-        # Lấy tất cả QR mới
-        new_qr_count = len(qr_data) - st.session_state.last_qr_count
-        new_qrs = qr_data[-new_qr_count:]
 
-        for new_qr in new_qrs:
-            # CB1 Sensor: Đếm package
-            st.session_state.package_counter += 1
-            package_id = st.session_state.package_counter
+# Thêm vào session state initialization (dòng 62-77)
+if 'last_trigger_state' not in st.session_state:
+    st.session_state.last_trigger_state = 0
 
-            # Camera: Classification
-            region = new_qr.get("region", "")
-            region_code = classify_qr_to_region_code(region)
 
-            # Lưu vào Queue (PackageID, RegionCode)
-            package_address = (package_id, region_code)
-            st.session_state.package_queue.append(package_address)
-
-            add_to_log_stack(f"[CB1+CAMERA] Package ID:{package_id}, Region:{region} (Code:{region_code})")
-
-        st.session_state.last_qr_count = len(qr_data)
-
-def process_cb2_sensor():
-    """CB2 Sensor: Sequential array storage cho DB1"""
-    # Kiểm tra kết nối PLC
+def process_sensor_trigger():
+    """Xử lý khi cảm biến CB1/CB2 trigger (gộp chung)"""
     if 'plc_manager' not in st.session_state or not st.session_state.plc_connected:
         return
 
-        # Kiểm tra có package trong queue không
-    if not st.session_state.package_queue:
-        return
-
     try:
-        # Đọc DB14[0] để detect CB2 trigger
         db14_data = st.session_state.plc_manager.read_db(14, 0, 2)
 
         if db14_data and len(db14_data) >= 2:
-            db14_value = int.from_bytes(db14_data[0:2], byteorder='big')
+            trigger_value = int.from_bytes(db14_data[0:2], byteorder='big')
 
-            # Nếu DB14[0] = 1, xử lý package
-            if db14_value == 1:
-                # Dequeue package từ FIFO
-                current_package = st.session_state.package_queue.popleft()
-                package_id, region_code = current_package
-                region_name = region_code_to_name(region_code)
-
-                # Lấy vị trí hiện tại trong array
+            # ✅ CHỈ xử lý khi trigger thay đổi từ 0 → 1 (rising edge)
+            if trigger_value == 1 and st.session_state.last_trigger_state == 0:
+                # Tăng bộ đếm và vị trí
+                st.session_state.package_counter += 1
+                package_id = st.session_state.package_counter
                 current_position = st.session_state.db_array_position
-
-                # Tính offset cho vị trí array (mỗi int = 2 bytes)
                 array_offset = current_position * 2
 
-                add_to_log_stack(f"[CB2] Processing Package {package_id} at position [{current_position}]")
+                # Kiểm tra có QR mới không
+                if len(qr_data) > st.session_state.last_qr_count:
+                    latest_qr = qr_data[-1]
+                    region = latest_qr.get("region", "")
+                    region_code = classify_qr_to_region_code(region)
+                    st.session_state.plc_manager.write_db(1, array_offset, region_code)
+                    st.session_state.last_qr_count = len(qr_data)
+                    add_to_log_stack(f"[SENSOR] Package {package_id} - Region: {region} (Code: {region_code})")
+                else:
+                    # Không có QR - ghi 0 thay vì 4
+                    st.session_state.plc_manager.write_db(1, array_offset, 0)
+                    add_to_log_stack(f"[SENSOR] Package {package_id} - No QR detected")
 
-                # Ghi vào DB arrays tại vị trí tuần tự
-                if 'plc_manager' in st.session_state and st.session_state.plc_connected:
-                    if region_code == 1:  # Miền Nam
-                        st.session_state.plc_manager.write_db(1, array_offset, 1)
-                        add_to_log_stack(
-                            f"[PLC] DB1[{current_position}]=1, DB2[{current_position}]=0, DB3[{current_position}]=0")
-
-                    elif region_code == 2:  # Miền Bắc
-                        st.session_state.plc_manager.write_db(1, array_offset, 2)
-                        add_to_log_stack(
-                            f"[PLC] DB1[{current_position}]=0, DB2[{current_position}]=2, DB3[{current_position}]=0")
-
-                    elif region_code == 3:  # Miền Trung
-                        st.session_state.plc_manager.write_db(1, array_offset, 3)
-                        add_to_log_stack(
-                            f"[PLC] DB1[{current_position}]=0, DB2[{current_position}]=0, DB3[{current_position}]=3")
-                    elif region_code == 0:  # Miền Khác
-                        st.session_state.plc_manager.write_db(1, array_offset, 4)
-                        add_to_log_stack(
-                            f"[PLC] DB1[{current_position}]=0, DB2[{current_position}]=0, DB3[{current_position}]=0")
-
-                        # Tăng array position cho lần tiếp theo
+                    # Tăng vị trí SAU KHI ghi xong
                 st.session_state.db_array_position += 1
-
-                # Reset về 0 nếu vượt quá 100
                 if st.session_state.db_array_position > 100:
                     st.session_state.db_array_position = 0
-                    add_to_log_stack("[ARRAY] Reset position to 0")
-    except Exception as e:
-        add_to_log_stack(f"[ERROR] Lỗi đọc DB14[0]: {str(e)}")
 
+                    # ✅ Lưu trạng thái trigger hiện tại
+            st.session_state.last_trigger_state = trigger_value
+
+    except Exception as e:
+        add_to_log_stack(f"[ERROR] Lỗi xử lý sensor: {str(e)}")
+
+process_sensor_trigger()
         # Xử lý packages mới
        # Đọc tần số biến tần từ DB4
-    def read_vfd_frequency():
-        if 'plc_manager' not in st.session_state or not st.session_state.plc_connected:
-            return 0.0
+def read_vfd_frequency():
+    if 'plc_manager' not in st.session_state or not st.session_state.plc_connected:
+        return 0.0
 
-        try:
+    try:
             # Đọc DB4 - giả sử frequency được lưu ở offset 0, 2 bytes
-            db4_data = st.session_state.plc_manager.read_db(14, 2, 2)
+        db4_data = st.session_state.plc_manager.read_db(14, 2, 2)
 
-            if db4_data and len(db4_data) >= 2: #dữ liệu phải có ít nhất 2 byte.
+        if db4_data and len(db4_data) >= 2: #dữ liệu phải có ít nhất 2 byte.
                 # Convert 2 bytes thành integer (big-endian)
-                frequency_raw = int.from_bytes(db4_data[0:2], byteorder='big')
-                frequency = frequency_raw
-                return frequency
-            return 0
-        except Exception as e:
-            add_to_log_stack(f"[ERROR] Lỗi đọc frequency DB4: {str(e)}")
-            return 0.0
+            frequency_raw = int.from_bytes(db4_data[0:2], byteorder='big')
+            frequency = frequency_raw
+            return frequency
+        return 0
+    except Exception as e:
+        add_to_log_stack(f"[ERROR] Lỗi đọc frequency DB4: {str(e)}")
+        return 0.0
 
-process_new_packages()
 
-# Xử lý CB2 sensors
-process_cb2_sensor()
+
+# process_sensor_trigger
+process_sensor_trigger()
 
 
 col_info1, col_info2, col_info3= st.columns(3)
